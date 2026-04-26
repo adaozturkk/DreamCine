@@ -37,5 +37,18 @@ namespace DreamCine.Api.Controllers
 
             return Ok(genreDtos);
         }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById([FromRoute] int id)
+        {
+            var genre = await _context.Genres.FindAsync(id);
+
+            if (genre == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(genre.ToGenreDto());
+        }
     }
 }
