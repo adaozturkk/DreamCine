@@ -12,5 +12,14 @@ namespace DreamCine.Api.Mappers
                 Name = genreDto.Name
             };
         }
+
+        public static GenreDto ToGenreDto(this Genre genreModel)
+        {
+            return new GenreDto
+            {
+                Id = genreModel.Id,
+                Name = genreModel.Name
+            };
+        }
     }
 }

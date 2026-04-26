@@ -3,6 +3,7 @@ using DreamCine.Api.DTOs.Genre;
 using DreamCine.Api.Mappers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DreamCine.Api.Controllers
 {
@@ -26,6 +27,15 @@ namespace DreamCine.Api.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(genreModel);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var genres = await _context.Genres.ToListAsync();
+            var genreDtos = genres.Select(g => g.ToGenreDto()).ToList();
+
+            return Ok(genreDtos);
         }
     }
 }
