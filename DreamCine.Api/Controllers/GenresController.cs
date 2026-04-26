@@ -66,5 +66,21 @@ namespace DreamCine.Api.Controllers
 
             return Ok(genre.ToGenreDto());
         }
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete([FromRoute] int id)
+        {
+            var genre = await _context.Genres.FindAsync(id);
+
+            if (genre == null)
+            {
+                return NotFound();
+            }
+
+            _context.Remove(genre);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
     }
 }
