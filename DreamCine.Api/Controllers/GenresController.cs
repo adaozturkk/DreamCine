@@ -50,5 +50,21 @@ namespace DreamCine.Api.Controllers
 
             return Ok(genre.ToGenreDto());
         }
+
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateGenreDto updateDto)
+        {
+            var genre = await _context.Genres.FindAsync(id);
+
+            if (genre == null)
+            {
+                return NotFound();
+            }
+
+            genre.Name = updateDto.Name;
+            await _context.SaveChangesAsync();
+
+            return Ok(genre.ToGenreDto());
+        }
     }
 }
