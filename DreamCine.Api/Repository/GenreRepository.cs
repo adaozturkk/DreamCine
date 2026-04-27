@@ -16,7 +16,7 @@ namespace DreamCine.Api.Repository
 
         public async Task<Genre> CreateAsync(Genre genreModel)
         {
-            await _context.AddAsync(genreModel);
+            await _context.Genres.AddAsync(genreModel);
             await _context.SaveChangesAsync();
 
             return genreModel;

@@ -9,7 +9,7 @@ namespace DreamCine.Api.Models
         public string Description { get; set; } = string.Empty;
         public int Duration { get; set; }
         [Precision(3, 1)]
-        public decimal Rating { get; set; }
+        public decimal? Rating { get; set; }
         public DateTime ReleaseDate { get; set; }
     }
 }

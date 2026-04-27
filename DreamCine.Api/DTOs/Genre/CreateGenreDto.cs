@@ -5,7 +5,7 @@ namespace DreamCine.Api.DTOs.Genre
     public class CreateGenreDto
     {
         [Required]
-        [MaxLength(50, ErrorMessage = "Genre name cannot be over 50 characters")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Title must be in range 2 to 50 characters")]
         public string Name { get; set; } = string.Empty;
     }
 }
