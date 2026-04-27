@@ -1,6 +1,8 @@
 ﻿using DreamCine.Api.Data;
 using DreamCine.Api.DTOs.Genre;
+using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
+using DreamCine.Api.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,28 +13,26 @@ namespace DreamCine.Api.Controllers
     [ApiController]
     public class GenresController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IGenreRepository _genreRepo;
 
-        public GenresController(ApplicationDbContext context)
+        public GenresController(IGenreRepository genreRepo)
         {
-            _context = context;
+            _genreRepo = genreRepo;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateGenre([FromBody] CreateGenreDto createGenreDto)
         {
             var genreModel = createGenreDto.ToGenreFromCreateDto();
+            await _genreRepo.CreateAsync(genreModel);
 
-            await _context.AddAsync(genreModel);
-            await _context.SaveChangesAsync();
-
-            return Ok(genreModel);
+            return Ok(genreModel.ToGenreDto());
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var genres = await _context.Genres.ToListAsync();
+            var genres = await _genreRepo.GetAllAsync();
             var genreDtos = genres.Select(g => g.ToGenreDto()).ToList();
 
             return Ok(genreDtos);
@@ -41,7 +41,7 @@ namespace DreamCine.Api.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
-            var genre = await _context.Genres.FindAsync(id);
+            var genre = await _genreRepo.GetByIdAsync(id);
 
             if (genre == null)
             {
@@ -54,31 +54,26 @@ namespace DreamCine.Api.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateGenreDto updateDto)
         {
-            var genre = await _context.Genres.FindAsync(id);
+            var genreModel = new Genre { Name = updateDto.Name };
+            var updatedGenre = await _genreRepo.UpdateAsync(id, genreModel);
 
-            if (genre == null)
+            if (updatedGenre == null)
             {
                 return NotFound();
             }
 
-            genre.Name = updateDto.Name;
-            await _context.SaveChangesAsync();
-
-            return Ok(genre.ToGenreDto());
+            return Ok(updatedGenre.ToGenreDto());
         }
 
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            var genre = await _context.Genres.FindAsync(id);
+            var deletedGenre = await _genreRepo.DeleteAsync(id);
 
-            if (genre == null)
+            if (deletedGenre == null)
             {
                 return NotFound();
             }
-
-            _context.Remove(genre);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }

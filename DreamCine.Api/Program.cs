@@ -1,4 +1,6 @@
 using DreamCine.Api.Data;
+using DreamCine.Api.Interfaces;
+using DreamCine.Api.Repository;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +14,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
