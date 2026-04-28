@@ -17,5 +17,7 @@ namespace DreamCine.Api.DTOs.Movie
         [Required]
         [Range(typeof(DateTime), "1/1/1888", "1/1/2100", ErrorMessage = "Release date is invalid.")]
         public DateTime ReleaseDate { get; set; }
+        [Required]
+        public List<int> GenreIds { get; set; } = new List<int>();
     }
 }

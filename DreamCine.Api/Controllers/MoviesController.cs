@@ -11,19 +11,31 @@ namespace DreamCine.Api.Controllers
     public class MoviesController : ControllerBase
     {
         private readonly IMovieRepository _movieRepo;
+        private readonly IGenreRepository _genreRepo;
 
-        public MoviesController(IMovieRepository movieRepo)
+        public MoviesController(IMovieRepository movieRepo, IGenreRepository genreRepo)
         {
             _movieRepo = movieRepo;
+            _genreRepo = genreRepo;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateMovie([FromBody] CreateMovieDto createMovieDto)
         {
+            if (createMovieDto.GenreIds.Any())
+            {
+                bool genresExist = await _genreRepo.DoGenresExistAsync(createMovieDto.GenreIds);
+
+                if (!genresExist)
+                {
+                    return BadRequest("Genre types are not valid.");
+                }
+            }
+
             var movieModel = createMovieDto.ToMovieFromCreateDto();
             await _movieRepo.CreateAsync(movieModel);
 
-            return Ok(movieModel);
+            return Ok(movieModel.ToMovieDto());
         }
     }
 }

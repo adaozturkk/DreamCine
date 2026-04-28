@@ -9,5 +9,6 @@ namespace DreamCine.Api.Interfaces
         Task<Genre> CreateAsync(Genre genreModel);
         Task<Genre?> UpdateAsync(int id, Genre genreModel);
         Task<Genre?> DeleteAsync(int id);
+        Task<bool> DoGenresExistAsync(List<int> genreIds);
     }
 }

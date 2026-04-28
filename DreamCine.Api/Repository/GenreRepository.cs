@@ -37,6 +37,16 @@ namespace DreamCine.Api.Repository
             return genre;
         }
 
+        public async Task<bool> DoGenresExistAsync(List<int> genreIds)
+        {
+            int uniqueIdCount = genreIds.Distinct().Count();
+            int existingCount = await _context.Genres
+                .Where(g => genreIds.Contains(g.Id))
+                .CountAsync();
+
+            return uniqueIdCount == existingCount;
+        }
+
         public async Task<List<Genre>> GetAllAsync()
         {
             return await _context.Genres.ToListAsync();

@@ -14,6 +14,20 @@ namespace DreamCine.Api.Mappers
                 Duration = movieDto.Duration,
                 Rating = movieDto.Rating,
                 ReleaseDate = movieDto.ReleaseDate,
+                MovieGenres = movieDto.GenreIds.Select(id => new MovieGenre {  GenreId = id }).ToList()
+            };
+        }
+
+        public static MovieDto ToMovieDto(this Movie movieModel)
+        {
+            return new MovieDto
+            {
+                Id = movieModel.Id,
+                Title = movieModel.Title,
+                Description = movieModel.Description,
+                Duration = movieModel.Duration,
+                Rating = movieModel.Rating,
+                ReleaseDate = movieModel.ReleaseDate,
             };
         }
     }
