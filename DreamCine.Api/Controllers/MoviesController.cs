@@ -46,5 +46,18 @@ namespace DreamCine.Api.Controllers
 
             return Ok(moviesDto);
         }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById([FromRoute] int id)
+        {
+            var movie = await _movieRepo.GetByIdAsync(id);
+
+            if (movie == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(movie.ToMovieDto());
+        }
     }
 }

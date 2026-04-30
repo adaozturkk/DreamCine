@@ -44,7 +44,8 @@ namespace DreamCine.Api.Repository
 
         public async Task<Movie?> GetByIdAsync(int id)
         {
-            var movie = await _context.Movies.FindAsync(id);
+            var movie = await _context.Movies.Include(x => x.MovieGenres)
+                .ThenInclude(x => x.Genre).FirstOrDefaultAsync(x => x.Id == id);
 
             if (movie == null)
             {
