@@ -28,6 +28,7 @@ namespace DreamCine.Api.Mappers
                 Duration = movieModel.Duration,
                 Rating = movieModel.Rating,
                 ReleaseDate = movieModel.ReleaseDate,
+                Genres = movieModel.MovieGenres.Select(x => x.Genre.Name).ToList()
             };
         }
     }

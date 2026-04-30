@@ -39,7 +39,7 @@ namespace DreamCine.Api.Repository
 
         public async Task<List<Movie>> GetAllAsync()
         {
-            return await _context.Movies.ToListAsync();
+            return await _context.Movies.Include(x => x.MovieGenres).ThenInclude(x => x.Genre).ToListAsync();
         }
 
         public async Task<Movie?> GetByIdAsync(int id)

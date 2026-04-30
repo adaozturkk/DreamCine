@@ -10,5 +10,6 @@ namespace DreamCine.Api.DTOs.Movie
         public int Duration { get; set; }
         public decimal? Rating { get; set; }
         public DateTime ReleaseDate { get; set; }
+        public List<string> Genres { get; set; } = new List<string>();
     }
 }

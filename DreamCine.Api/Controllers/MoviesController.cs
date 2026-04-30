@@ -37,5 +37,14 @@ namespace DreamCine.Api.Controllers
 
             return Ok(movieModel.ToMovieDto());
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var moviesModel = await _movieRepo.GetAllAsync();
+            var moviesDto = moviesModel.Select(x => x.ToMovieDto()).ToList();
+
+            return Ok(moviesDto);
+        }
     }
 }
