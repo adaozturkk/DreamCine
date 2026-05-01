@@ -31,5 +31,18 @@ namespace DreamCine.Api.Mappers
                 Genres = movieModel.MovieGenres.Select(x => x.Genre.Name).ToList()
             };
         }
+
+        public static Movie ToMovieFromUpdateDto(this UpdateMovieDto movieDto)
+        {
+            return new Movie
+            {
+                Title = movieDto.Title,
+                Description = movieDto.Description,
+                Duration = movieDto.Duration,
+                Rating = movieDto.Rating,
+                ReleaseDate = movieDto.ReleaseDate,
+                MovieGenres = movieDto.GenreIds.Select(id => new MovieGenre { GenreId = id }).ToList()
+            };
+        }
     }
 }

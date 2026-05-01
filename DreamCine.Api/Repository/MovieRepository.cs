@@ -57,22 +57,31 @@ namespace DreamCine.Api.Repository
 
         public async Task<Movie?> UpdateAsync(int id, Movie movieModel)
         {
-            var movie = await _context.Movies.FindAsync(id);
+            var movie = await _context.Movies
+                .Include(x => x.MovieGenres).FirstOrDefaultAsync(x => x.Id == id);
 
             if (movie == null)
             {
                 return null;
             }
 
+            movie.MovieGenres.Clear();
+
             movie.Title = movieModel.Title;
             movie.Description = movieModel.Description;
             movie.Duration = movieModel.Duration;
             movie.Rating = movieModel.Rating;
             movie.ReleaseDate = movieModel.ReleaseDate;
+            movie.MovieGenres = movieModel.MovieGenres;
 
             await _context.SaveChangesAsync();
 
-            return movie;
+            var updatedMovie = await _context.Movies
+                .Include(x => x.MovieGenres)
+                .ThenInclude(x => x.Genre)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            return updatedMovie;
         }
     }
 }

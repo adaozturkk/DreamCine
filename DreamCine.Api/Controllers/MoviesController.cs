@@ -1,6 +1,7 @@
 ﻿using DreamCine.Api.DTOs.Movie;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
+using DreamCine.Api.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -51,6 +52,29 @@ namespace DreamCine.Api.Controllers
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
             var movie = await _movieRepo.GetByIdAsync(id);
+
+            if (movie == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(movie.ToMovieDto());
+        }
+
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateMovieDto movieDto)
+        {
+            if (movieDto.GenreIds.Any())
+            {
+                bool genresExist = await _genreRepo.DoGenresExistAsync(movieDto.GenreIds);
+
+                if (!genresExist)
+                {
+                    return BadRequest("Genre types are not valid.");
+                }
+            }
+
+            var movie = await _movieRepo.UpdateAsync(id, movieDto.ToMovieFromUpdateDto());
 
             if (movie == null)
             {
