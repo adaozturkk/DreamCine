@@ -83,5 +83,18 @@ namespace DreamCine.Api.Controllers
 
             return Ok(movie.ToMovieDto());
         }
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete([FromRoute] int id)
+        {
+            var movie = await _movieRepo.DeleteAsync(id);
+
+            if (movie == null)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
     }
 }
