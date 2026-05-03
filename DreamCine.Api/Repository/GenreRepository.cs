@@ -64,6 +64,11 @@ namespace DreamCine.Api.Repository
             return genre;
         }
 
+        public async Task<bool> NameExistsAsync(string name, int? excludeId = null)
+        {
+            return await _context.Genres.AnyAsync(x => x.Name.ToLower() == name.ToLower() && x.Id != excludeId);
+        }
+
         public async Task<Genre?> UpdateAsync(int id, Genre genreModel)
         {
             var genre = await _context.Genres.FindAsync(id);

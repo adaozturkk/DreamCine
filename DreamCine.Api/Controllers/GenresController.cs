@@ -23,6 +23,11 @@ namespace DreamCine.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateGenre([FromBody] CreateGenreDto createGenreDto)
         {
+            if (await _genreRepo.NameExistsAsync(createGenreDto.Name))
+            {
+                return BadRequest("Genre name already exists.");
+            }
+
             var genreModel = createGenreDto.ToGenreFromCreateDto();
             await _genreRepo.CreateAsync(genreModel);
 
@@ -54,6 +59,11 @@ namespace DreamCine.Api.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateGenreDto updateDto)
         {
+            if (await _genreRepo.NameExistsAsync(updateDto.Name, id))
+            {
+                return BadRequest("Genre name already exists.");
+            }
+
             var genreModel = new Genre { Name = updateDto.Name };
             var updatedGenre = await _genreRepo.UpdateAsync(id, genreModel);
 
