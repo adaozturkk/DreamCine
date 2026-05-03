@@ -20,6 +20,11 @@ namespace DreamCine.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateScreen([FromBody] CreateScreenDto screenDto)
         {
+            if (await _screenRepo.ScreenNumberExistsAsync(screenDto.ScreenNumber))
+            {
+                return BadRequest("This screen number already exists.");
+            }
+
             var screen = await _screenRepo.CreateAsync(screenDto.ToScreenFromCreateDto());
             return Ok(screen.ToScreenDto());
         }
@@ -49,6 +54,11 @@ namespace DreamCine.Api.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateScreenDto updateDto)
         {
+            if (await _screenRepo.ScreenNumberExistsAsync(updateDto.ScreenNumber, id))
+            {
+                return BadRequest("This screen number already exists.");
+            }
+
             var screen = await _screenRepo.UpdateAsync(id, updateDto.ToScreenFromUpdateDto());
 
             if (screen == null)

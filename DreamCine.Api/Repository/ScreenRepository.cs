@@ -54,6 +54,11 @@ namespace DreamCine.Api.Repository
             return screen;
         }
 
+        public async Task<bool> ScreenNumberExistsAsync(int screenNumber, int? excludeId = null)
+        {
+            return await _context.Screens.AnyAsync(x => x.ScreenNumber == screenNumber && x.Id != excludeId);
+        }
+
         public async Task<Screen?> UpdateAsync(int id, Screen screenModel)
         {
             var screen = await _context.Screens.FindAsync(id);
