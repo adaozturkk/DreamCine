@@ -19,6 +19,7 @@ builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 builder.Services.AddScoped<IScreenRepository, ScreenRepository>();
 builder.Services.AddScoped<ISeatRepository, SeatRepository>();
+builder.Services.AddScoped<IStatusRepository, StatusRepository>();
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
