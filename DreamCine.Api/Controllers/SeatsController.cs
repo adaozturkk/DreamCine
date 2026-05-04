@@ -1,0 +1,100 @@
+﻿using DreamCine.Api.DTOs.Seat;
+using DreamCine.Api.Interfaces;
+using DreamCine.Api.Mappers;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace DreamCine.Api.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class SeatsController : ControllerBase
+    {
+        private readonly ISeatRepository _seatRepo;
+        private readonly IScreenRepository _screenRepo;
+
+        public SeatsController(ISeatRepository seatRepo, IScreenRepository screenRepo)
+        {
+            _seatRepo = seatRepo;
+            _screenRepo = screenRepo;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateSeat([FromBody] CreateSeatDto seatDto)
+        {
+            if (await _seatRepo.SeatExistsInScreenAsync(seatDto.SeatNumber, seatDto.ScreenId))
+            {
+                return BadRequest("Seat already exists in that screen.");
+            }
+
+            if (await _screenRepo.GetByIdAsync(seatDto.ScreenId) == null)
+            {
+                return BadRequest("Screen does not exist.");
+            }
+
+            var seatModel = seatDto.ToSeatFromCreateSeatDto();
+            await _seatRepo.CreateAsync(seatModel);
+
+            return Ok(seatModel.ToSeatDto());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var seats = await _seatRepo.GetAllAsync();
+            var seatDtos = seats.Select(x => x.ToSeatDto()).ToList();
+
+            return Ok(seatDtos);
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById([FromRoute] int id)
+        {
+            var seat = await _seatRepo.GetByIdAsync(id);
+
+            if (seat == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(seat.ToSeatDto());
+        }
+
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateSeatDto seatDto)
+        {
+            if (await _seatRepo.SeatExistsInScreenAsync(seatDto.SeatNumber, seatDto.ScreenId, id))
+            {
+                return BadRequest("Seat already exists in that screen.");
+            }
+
+            if (await _screenRepo.GetByIdAsync(seatDto.ScreenId) == null)
+            {
+                return BadRequest("Screen does not exist.");
+            }
+
+            var seatModel = seatDto.ToSeatFromUpdateSeatDto();
+            var updatedSeat = await _seatRepo.UpdateAsync(id, seatModel);
+
+            if (updatedSeat == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(updatedSeat.ToSeatDto());
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete([FromRoute] int id)
+        {
+            var seat = await _seatRepo.DeleteAsync(id);
+
+            if (seat == null)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
+    }
+}
