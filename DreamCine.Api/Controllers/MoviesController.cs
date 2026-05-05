@@ -1,4 +1,5 @@
 ﻿using DreamCine.Api.DTOs.Movie;
+using DreamCine.Api.Helpers;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
 using DreamCine.Api.Models;
@@ -40,9 +41,9 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] MovieQueryObject query)
         {
-            var moviesModel = await _movieRepo.GetAllAsync();
+            var moviesModel = await _movieRepo.GetAllAsync(query);
             var moviesDto = moviesModel.Select(x => x.ToMovieDto()).ToList();
 
             return Ok(moviesDto);

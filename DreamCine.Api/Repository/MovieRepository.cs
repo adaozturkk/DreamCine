@@ -1,4 +1,5 @@
 ﻿using DreamCine.Api.Data;
+using DreamCine.Api.Helpers;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -37,9 +38,40 @@ namespace DreamCine.Api.Repository
             return movie;
         }
 
-        public async Task<List<Movie>> GetAllAsync()
+        public async Task<List<Movie>> GetAllAsync(MovieQueryObject query)
         {
-            return await _context.Movies.Include(x => x.MovieGenres).ThenInclude(x => x.Genre).ToListAsync();
+            var movies = _context.Movies.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(query.Title))
+            {
+                movies = movies.Where(x => x.Title.Contains(query.Title));
+            }
+
+            if (query.GenreId.HasValue)
+            {
+                movies = movies.Where(x => x.MovieGenres.Any(m => m.GenreId == query.GenreId));
+            }
+
+            switch (query.SortBy?.ToLower())
+            {
+                case "title":
+                    movies = query.IsDescending ? movies.OrderByDescending(x => x.Title) : movies.OrderBy(x => x.Title);
+                    break;
+                case "releasedate":
+                    movies = query.IsDescending ? movies.OrderByDescending(x => x.ReleaseDate) : movies.OrderBy(x => x.ReleaseDate);
+                    break;
+                case "rating":
+                    movies = query.IsDescending ? movies.OrderByDescending(x => x.Rating) : movies.OrderBy(x => x.Rating);
+                    break;
+                default:
+                    movies = query.IsDescending ? movies.OrderByDescending(x => x.Id) : movies.OrderBy(x => x.Id);
+                    break;
+            }
+
+            var skipNumber = (query.PageNumber - 1) * query.PageSize;
+
+            return await movies.Include(x => x.MovieGenres).ThenInclude(x => x.Genre)
+                .Skip(skipNumber).Take(query.PageSize).ToListAsync();
         }
 
         public async Task<Movie?> GetByIdAsync(int id)
