@@ -2,6 +2,7 @@ using DreamCine.Api.Data;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Repository;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,8 @@ builder.Services.AddScoped<ISeatRepository, SeatRepository>();
 builder.Services.AddScoped<IStatusRepository, StatusRepository>();
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
+
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 var app = builder.Build();
 

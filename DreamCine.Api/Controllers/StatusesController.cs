@@ -1,6 +1,7 @@
 ﻿using DreamCine.Api.DTOs.Status;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,15 +12,26 @@ namespace DreamCine.Api.Controllers
     public class StatusesController : ControllerBase
     {
         private readonly IStatusRepository _statusRepo;
+        private readonly IValidator<CreateStatusDto> _createStatusValidator;
+        private readonly IValidator<UpdateStatusDto> _updateStatusValidator;
 
-        public StatusesController(IStatusRepository statusRepo)
+        public StatusesController(IStatusRepository statusRepo, IValidator<CreateStatusDto> createStatusValidator, IValidator<UpdateStatusDto> updateStatusValidator)
         {
             _statusRepo = statusRepo;
+            _createStatusValidator = createStatusValidator;
+            _updateStatusValidator = updateStatusValidator;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateStatus([FromBody] CreateStatusDto statusDto)
         {
+            var validationResult = await _createStatusValidator.ValidateAsync(statusDto);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             if (await _statusRepo.NameExistsAsync(statusDto.Name))
             {
                 return BadRequest("Status name already exists.");
@@ -56,6 +68,13 @@ namespace DreamCine.Api.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateStatusDto statusDto)
         {
+            var validationResult = await _updateStatusValidator.ValidateAsync(statusDto);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             if (await _statusRepo.NameExistsAsync(statusDto.Name, id))
             {
                 return BadRequest("Status name already exists.");
