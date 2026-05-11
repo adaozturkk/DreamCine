@@ -1,4 +1,5 @@
 ﻿using DreamCine.Api.Data;
+using DreamCine.Api.Helpers;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -37,9 +38,33 @@ namespace DreamCine.Api.Repository
             return seat;
         }
 
-        public async Task<List<Seat>> GetAllAsync()
+        public async Task<List<Seat>> GetAllAsync(SeatQueryObject query)
         {
-            return await _context.Seats.ToListAsync();
+            var seats = _context.Seats.AsQueryable();
+
+            if (!string.IsNullOrEmpty(query.SeatNumber))
+            {
+                seats = seats.Where(x => x.SeatNumber == query.SeatNumber);
+            }
+
+            if (query.ScreenId.HasValue)
+            {
+                seats = seats.Where(x => x.ScreenId == query.ScreenId);
+            }
+
+            switch (query.SortBy?.ToLower())
+            {
+                case "seatnumber":
+                    seats = query.IsDescending ? seats.OrderByDescending(x => x.SeatNumber) : seats.OrderBy(x => x.SeatNumber);
+                    break;
+                default:
+                    seats = query.IsDescending ? seats.OrderByDescending(x => x.Id) : seats.OrderBy(x => x.Id);
+                    break;
+            }
+
+            var skipNumber = (query.PageNumber - 1) * query.PageSize;
+
+            return await seats.Skip(skipNumber).Take(query.PageSize).ToListAsync();
         }
 
         public async Task<Seat?> GetByIdAsync(int id)

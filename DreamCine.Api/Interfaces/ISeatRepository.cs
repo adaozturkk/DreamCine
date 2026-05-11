@@ -1,10 +1,11 @@
-﻿using DreamCine.Api.Models;
+﻿using DreamCine.Api.Helpers;
+using DreamCine.Api.Models;
 
 namespace DreamCine.Api.Interfaces
 {
     public interface ISeatRepository
     {
-        Task<List<Seat>> GetAllAsync();
+        Task<List<Seat>> GetAllAsync(SeatQueryObject query);
         Task<Seat?> GetByIdAsync(int id);
         Task<Seat> CreateAsync(Seat seatModel);
         Task<Seat?> UpdateAsync(int id, Seat seatModel);

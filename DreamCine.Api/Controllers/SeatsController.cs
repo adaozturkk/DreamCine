@@ -1,4 +1,5 @@
 ﻿using DreamCine.Api.DTOs.Seat;
+using DreamCine.Api.Helpers;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
 using Microsoft.AspNetCore.Http;
@@ -39,9 +40,9 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] SeatQueryObject query)
         {
-            var seats = await _seatRepo.GetAllAsync();
+            var seats = await _seatRepo.GetAllAsync(query);
             var seatDtos = seats.Select(x => x.ToSeatDto()).ToList();
 
             return Ok(seatDtos);
