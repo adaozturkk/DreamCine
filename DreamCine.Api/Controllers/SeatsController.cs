@@ -1,7 +1,9 @@
 ﻿using DreamCine.Api.DTOs.Seat;
+using DreamCine.Api.DTOs.Status;
 using DreamCine.Api.Helpers;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,24 +15,36 @@ namespace DreamCine.Api.Controllers
     {
         private readonly ISeatRepository _seatRepo;
         private readonly IScreenRepository _screenRepo;
+        private readonly IValidator<CreateSeatDto> _createSeatValidator;
+        private readonly IValidator<UpdateSeatDto> _updateSeatValidator;
 
-        public SeatsController(ISeatRepository seatRepo, IScreenRepository screenRepo)
+        public SeatsController(ISeatRepository seatRepo, IScreenRepository screenRepo,
+            IValidator<UpdateSeatDto> updateSeatValidator, IValidator<CreateSeatDto> createSeatValidator)
         {
             _seatRepo = seatRepo;
             _screenRepo = screenRepo;
+            _updateSeatValidator = updateSeatValidator;
+            _createSeatValidator = createSeatValidator;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateSeat([FromBody] CreateSeatDto seatDto)
         {
-            if (await _seatRepo.SeatExistsInScreenAsync(seatDto.SeatNumber, seatDto.ScreenId))
+            var validationResult = await _createSeatValidator.ValidateAsync(seatDto);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest("Seat already exists in that screen.");
+                return BadRequest(validationResult.Errors);
             }
 
             if (await _screenRepo.GetByIdAsync(seatDto.ScreenId) == null)
             {
                 return BadRequest("Screen does not exist.");
+            }
+
+            if (await _seatRepo.SeatExistsInScreenAsync(seatDto.SeatNumber, seatDto.ScreenId))
+            {
+                return BadRequest("Seat already exists in that screen.");
             }
 
             var seatModel = seatDto.ToSeatFromCreateSeatDto();
@@ -64,14 +78,21 @@ namespace DreamCine.Api.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateSeatDto seatDto)
         {
-            if (await _seatRepo.SeatExistsInScreenAsync(seatDto.SeatNumber, seatDto.ScreenId, id))
+            var validationResult = await _updateSeatValidator.ValidateAsync(seatDto);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest("Seat already exists in that screen.");
+                return BadRequest(validationResult.Errors);
             }
 
             if (await _screenRepo.GetByIdAsync(seatDto.ScreenId) == null)
             {
                 return BadRequest("Screen does not exist.");
+            }
+
+            if (await _seatRepo.SeatExistsInScreenAsync(seatDto.SeatNumber, seatDto.ScreenId, id))
+            {
+                return BadRequest("Seat already exists in that screen.");
             }
 
             var seatModel = seatDto.ToSeatFromUpdateSeatDto();
