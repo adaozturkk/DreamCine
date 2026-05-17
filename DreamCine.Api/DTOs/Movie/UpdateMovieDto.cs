@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace DreamCine.Api.DTOs.Movie
+﻿namespace DreamCine.Api.DTOs.Movie
 {
     public class UpdateMovieDto
     {

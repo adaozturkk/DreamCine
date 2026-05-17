@@ -3,6 +3,7 @@ using DreamCine.Api.DTOs.Genre;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
 using DreamCine.Api.Models;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,15 +15,26 @@ namespace DreamCine.Api.Controllers
     public class GenresController : ControllerBase
     {
         private readonly IGenreRepository _genreRepo;
+        private readonly IValidator<CreateGenreDto> _createGenreValidator;
+        private readonly IValidator<UpdateGenreDto> _updateGenreValidator;
 
-        public GenresController(IGenreRepository genreRepo)
+        public GenresController(IGenreRepository genreRepo, IValidator<CreateGenreDto> createGenreValidator, IValidator<UpdateGenreDto> updateGenreValidator)
         {
             _genreRepo = genreRepo;
+            _createGenreValidator = createGenreValidator;
+            _updateGenreValidator = updateGenreValidator;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateGenre([FromBody] CreateGenreDto createGenreDto)
         {
+            var validationResult = await _createGenreValidator.ValidateAsync(createGenreDto);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             if (await _genreRepo.NameExistsAsync(createGenreDto.Name))
             {
                 return BadRequest("Genre name already exists.");
@@ -59,6 +71,13 @@ namespace DreamCine.Api.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateGenreDto updateDto)
         {
+            var validationResult = await _updateGenreValidator.ValidateAsync(updateDto);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             if (await _genreRepo.NameExistsAsync(updateDto.Name, id))
             {
                 return BadRequest("Genre name already exists.");
