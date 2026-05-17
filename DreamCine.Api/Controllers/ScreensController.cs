@@ -1,6 +1,7 @@
 ﻿using DreamCine.Api.DTOs.Screen;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,15 +12,26 @@ namespace DreamCine.Api.Controllers
     public class ScreensController : ControllerBase
     {
         private readonly IScreenRepository _screenRepo;
+        private readonly IValidator<CreateScreenDto> _createScreenValidator;
+        private readonly IValidator<UpdateScreenDto> _updateScreenValidator;
 
-        public ScreensController(IScreenRepository screenRepo)
+        public ScreensController(IScreenRepository screenRepo, IValidator<CreateScreenDto> createScreenValidator, IValidator<UpdateScreenDto> updateScreenValidator)
         {
             _screenRepo = screenRepo;
+            _createScreenValidator = createScreenValidator;
+            _updateScreenValidator = updateScreenValidator;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateScreen([FromBody] CreateScreenDto screenDto)
         {
+            var validationResult = await _createScreenValidator.ValidateAsync(screenDto);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             if (await _screenRepo.ScreenNumberExistsAsync(screenDto.ScreenNumber))
             {
                 return BadRequest("This screen number already exists.");
@@ -54,6 +66,13 @@ namespace DreamCine.Api.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateScreenDto updateDto)
         {
+            var validationResult = await _updateScreenValidator.ValidateAsync(updateDto);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             if (await _screenRepo.ScreenNumberExistsAsync(updateDto.ScreenNumber, id))
             {
                 return BadRequest("This screen number already exists.");
