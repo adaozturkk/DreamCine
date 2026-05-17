@@ -3,6 +3,7 @@ using DreamCine.Api.Helpers;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
 using DreamCine.Api.Models;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,30 +15,39 @@ namespace DreamCine.Api.Controllers
     {
         private readonly IMovieRepository _movieRepo;
         private readonly IGenreRepository _genreRepo;
+        private readonly IValidator<CreateMovieDto> _createMovieValidator;
+        private readonly IValidator<UpdateMovieDto> _updateMovieValidator;
 
-        public MoviesController(IMovieRepository movieRepo, IGenreRepository genreRepo)
+        public MoviesController(IMovieRepository movieRepo, IGenreRepository genreRepo, IValidator<CreateMovieDto> createMovieValidator, IValidator<UpdateMovieDto> updateMovieValidator)
         {
             _movieRepo = movieRepo;
             _genreRepo = genreRepo;
+            _createMovieValidator = createMovieValidator;
+            _updateMovieValidator = updateMovieValidator;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateMovie([FromBody] CreateMovieDto createMovieDto)
         {
-            if (createMovieDto.GenreIds.Any())
-            {
-                bool genresExist = await _genreRepo.DoGenresExistAsync(createMovieDto.GenreIds);
+            var validationResult = await _createMovieValidator.ValidateAsync(createMovieDto);
 
-                if (!genresExist)
-                {
-                    return BadRequest("Genre types are not valid.");
-                }
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            bool genresExist = await _genreRepo.DoGenresExistAsync(createMovieDto.GenreIds);
+
+            if (!genresExist)
+            {
+                return BadRequest("Genre types are not valid.");
             }
 
             var movieModel = createMovieDto.ToMovieFromCreateDto();
             await _movieRepo.CreateAsync(movieModel);
+            var createdMovie = await _movieRepo.GetByIdAsync(movieModel.Id);
 
-            return Ok(movieModel.ToMovieDto());
+            return Ok(createdMovie!.ToMovieDto());
         }
 
         [HttpGet]
@@ -65,14 +75,18 @@ namespace DreamCine.Api.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateMovieDto movieDto)
         {
-            if (movieDto.GenreIds.Any())
-            {
-                bool genresExist = await _genreRepo.DoGenresExistAsync(movieDto.GenreIds);
+            var validationResult = await _updateMovieValidator.ValidateAsync(movieDto);
 
-                if (!genresExist)
-                {
-                    return BadRequest("Genre types are not valid.");
-                }
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            bool genresExist = await _genreRepo.DoGenresExistAsync(movieDto.GenreIds);
+
+            if (!genresExist)
+            {
+                return BadRequest("Genre types are not valid.");
             }
 
             var movie = await _movieRepo.UpdateAsync(id, movieDto.ToMovieFromUpdateDto());
@@ -82,7 +96,9 @@ namespace DreamCine.Api.Controllers
                 return NotFound();
             }
 
-            return Ok(movie.ToMovieDto());
+            var updatedMovie = await _movieRepo.GetByIdAsync(id);
+
+            return Ok(updatedMovie!.ToMovieDto());
         }
 
         [HttpDelete("{id:int}")]
