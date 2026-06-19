@@ -11,5 +11,7 @@ namespace DreamCine.Api.DTOs.Movie
         public decimal? Rating { get; set; }
         public DateTime ReleaseDate { get; set; }
         public List<string> Genres { get; set; } = new List<string>();
+        public int StatusId { get; set; }
+        public string StatusName { get; set; } = string.Empty;
     }
 }

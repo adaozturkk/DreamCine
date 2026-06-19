@@ -14,7 +14,8 @@ namespace DreamCine.Api.Mappers
                 Duration = movieDto.Duration,
                 Rating = movieDto.Rating,
                 ReleaseDate = movieDto.ReleaseDate,
-                MovieGenres = movieDto.GenreIds.Select(id => new MovieGenre {  GenreId = id }).ToList()
+                MovieGenres = movieDto.GenreIds.Select(id => new MovieGenre { GenreId = id }).ToList(),
+                StatusId = movieDto.StatusId
             };
         }
 
@@ -28,7 +29,9 @@ namespace DreamCine.Api.Mappers
                 Duration = movieModel.Duration,
                 Rating = movieModel.Rating,
                 ReleaseDate = movieModel.ReleaseDate,
-                Genres = movieModel.MovieGenres.Select(x => x.Genre.Name).ToList()
+                Genres = movieModel.MovieGenres.Select(x => x.Genre.Name).ToList(),
+                StatusId = movieModel.StatusId,
+                StatusName = movieModel.Status?.Name ?? string.Empty
             };
         }
 
@@ -41,7 +44,8 @@ namespace DreamCine.Api.Mappers
                 Duration = movieDto.Duration,
                 Rating = movieDto.Rating,
                 ReleaseDate = movieDto.ReleaseDate,
-                MovieGenres = movieDto.GenreIds.Select(id => new MovieGenre { GenreId = id }).ToList()
+                MovieGenres = movieDto.GenreIds.Select(id => new MovieGenre { GenreId = id }).ToList(),
+                StatusId = movieDto.StatusId
             };
         }
     }

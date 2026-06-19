@@ -70,14 +70,16 @@ namespace DreamCine.Api.Repository
 
             var skipNumber = (query.PageNumber - 1) * query.PageSize;
 
-            return await movies.Include(x => x.MovieGenres).ThenInclude(x => x.Genre)
+            return await movies
+                .Include(x => x.MovieGenres).ThenInclude(x => x.Genre)
+                .Include(x => x.Status)
                 .Skip(skipNumber).Take(query.PageSize).ToListAsync();
         }
 
         public async Task<Movie?> GetByIdAsync(int id)
         {
             var movie = await _context.Movies.Include(x => x.MovieGenres)
-                .ThenInclude(x => x.Genre).FirstOrDefaultAsync(x => x.Id == id);
+                .ThenInclude(x => x.Genre).Include(x => x.Status).FirstOrDefaultAsync(x => x.Id == id);
 
             if (movie == null)
             {
@@ -105,6 +107,7 @@ namespace DreamCine.Api.Repository
             movie.Rating = movieModel.Rating;
             movie.ReleaseDate = movieModel.ReleaseDate;
             movie.MovieGenres = movieModel.MovieGenres;
+            movie.StatusId = movieModel.StatusId;
 
             await _context.SaveChangesAsync();
 

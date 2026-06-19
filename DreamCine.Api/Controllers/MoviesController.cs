@@ -15,13 +15,16 @@ namespace DreamCine.Api.Controllers
     {
         private readonly IMovieRepository _movieRepo;
         private readonly IGenreRepository _genreRepo;
+        private readonly IStatusRepository _statusRepo;
         private readonly IValidator<CreateMovieDto> _createMovieValidator;
         private readonly IValidator<UpdateMovieDto> _updateMovieValidator;
 
-        public MoviesController(IMovieRepository movieRepo, IGenreRepository genreRepo, IValidator<CreateMovieDto> createMovieValidator, IValidator<UpdateMovieDto> updateMovieValidator)
+        public MoviesController(IMovieRepository movieRepo, IGenreRepository genreRepo, IStatusRepository statusRepo,
+            IValidator<CreateMovieDto> createMovieValidator, IValidator<UpdateMovieDto> updateMovieValidator)
         {
             _movieRepo = movieRepo;
             _genreRepo = genreRepo;
+            _statusRepo = statusRepo;
             _createMovieValidator = createMovieValidator;
             _updateMovieValidator = updateMovieValidator;
         }
@@ -41,6 +44,13 @@ namespace DreamCine.Api.Controllers
             if (!genresExist)
             {
                 return BadRequest("Genre types are not valid.");
+            }
+
+            bool statusExist = await _statusRepo.StatusExistsAsync(createMovieDto.StatusId);
+
+            if (!statusExist)
+            {
+                return BadRequest("Selected status does not exist.");
             }
 
             var movieModel = createMovieDto.ToMovieFromCreateDto();
@@ -87,6 +97,13 @@ namespace DreamCine.Api.Controllers
             if (!genresExist)
             {
                 return BadRequest("Genre types are not valid.");
+            }
+
+            bool statusExist = await _statusRepo.StatusExistsAsync(movieDto.StatusId);
+
+            if (!statusExist)
+            {
+                return BadRequest("Selected status does not exist.");
             }
 
             var movie = await _movieRepo.UpdateAsync(id, movieDto.ToMovieFromUpdateDto());

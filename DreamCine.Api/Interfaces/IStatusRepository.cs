@@ -10,5 +10,6 @@ namespace DreamCine.Api.Interfaces
         Task<Status?> UpdateAsync(int id, Status statusModel);
         Task<Status?> DeleteAsync(int id);
         Task<bool> NameExistsAsync(string name, int? excludeId = null);
+        Task<bool> StatusExistsAsync(int id);
     }
 }

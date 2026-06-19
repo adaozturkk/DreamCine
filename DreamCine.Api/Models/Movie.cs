@@ -12,5 +12,7 @@ namespace DreamCine.Api.Models
         public decimal? Rating { get; set; }
         public DateTime ReleaseDate { get; set; }
         public List<MovieGenre> MovieGenres { get; set; } = new List<MovieGenre>();
+        public int StatusId { get; set; }
+        public Status? Status { get; set; }
     }
 }

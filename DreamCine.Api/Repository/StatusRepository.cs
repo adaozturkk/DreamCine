@@ -59,6 +59,11 @@ namespace DreamCine.Api.Repository
             return await _context.Statuses.AnyAsync(x => x.Name.ToLower() == name.ToLower() && x.Id != excludeId);
         }
 
+        public async Task<bool> StatusExistsAsync(int id)
+        {
+            return await _context.Statuses.AnyAsync(x => x.Id == id);
+        }
+
         public async Task<Status?> UpdateAsync(int id, Status statusModel)
         {
             var status = await _context.Statuses.FindAsync(id);

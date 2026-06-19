@@ -8,5 +8,6 @@
         public decimal? Rating { get; set; }
         public DateTime ReleaseDate { get; set; }
         public List<int> GenreIds { get; set; } = new List<int>();
+        public int StatusId { get; set; }
     }
 }

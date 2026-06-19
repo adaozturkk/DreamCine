@@ -25,6 +25,8 @@ namespace DreamCine.Api.Validations.Movie
                 .LessThan(DateTime.Now.AddYears(10)).WithMessage("Release date cannot be more than 10 years in the future.");
             RuleFor(x => x.GenreIds)
                 .NotEmpty().WithMessage("A movie must have at least one genre.");
+            RuleFor(x => x.StatusId)
+                .GreaterThan(0).WithMessage("Status must be selected.");
         }
     }
 }
