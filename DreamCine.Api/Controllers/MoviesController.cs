@@ -62,6 +62,7 @@ namespace DreamCine.Api.Controllers
             return Ok(createdMovie!.ToMovieDto());
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] MovieQueryObject query)
         {
@@ -71,6 +72,7 @@ namespace DreamCine.Api.Controllers
             return Ok(moviesDto);
         }
 
+        [AllowAnonymous]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
