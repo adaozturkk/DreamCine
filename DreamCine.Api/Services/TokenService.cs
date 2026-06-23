@@ -11,19 +11,27 @@ namespace DreamCine.Api.Services
     {
         private readonly IConfiguration _config;
         private readonly SymmetricSecurityKey _key;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public TokenService(IConfiguration config)
+        public TokenService(IConfiguration config, UserManager<IdentityUser> userManager)
         {
             _config = config;
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:SigningKey"]));
+            _userManager = userManager;
         }
-        public string CreateToken(IdentityUser user)
+        public async Task<string> CreateToken(IdentityUser user)
         {
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(JwtRegisteredClaimNames.GivenName, user.UserName)
             };
+
+            var roles = await _userManager.GetRolesAsync(user);
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
 

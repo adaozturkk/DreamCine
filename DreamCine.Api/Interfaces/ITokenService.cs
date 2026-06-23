@@ -4,6 +4,6 @@ namespace DreamCine.Api.Interfaces
 {
     public interface ITokenService
     {
-        string CreateToken(IdentityUser user);
+        Task<string> CreateToken(IdentityUser user);
     }
 }

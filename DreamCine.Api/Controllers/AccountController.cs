@@ -84,7 +84,7 @@ namespace DreamCine.Api.Controllers
                 return Unauthorized("Invalid email or password.");
             }
 
-            var token = _tokenService.CreateToken(user);
+            var token = await _tokenService.CreateToken(user);
 
             return Ok(new
             {
