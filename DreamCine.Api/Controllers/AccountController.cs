@@ -45,7 +45,16 @@ namespace DreamCine.Api.Controllers
 
             if (result.Succeeded)
             {
-                return Ok("User created successfully.");
+                var roleResult = await _userManager.AddToRoleAsync(user, "User");
+
+                if (roleResult.Succeeded)
+                {
+                    return Ok("User created successfully and assigned to 'User' role.");
+                }
+                else
+                {
+                    return StatusCode(500, roleResult.Errors);
+                }
             }
 
             return BadRequest(result.Errors);
