@@ -12,11 +12,14 @@ namespace DreamCine.Api.Controllers
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IValidator<RegisterDto> _registerValidator;
+        private readonly IValidator<LoginDto> _loginValidator;
 
-        public AccountController(UserManager<IdentityUser> userManager, IValidator<RegisterDto> registerValidator)
+        public AccountController(UserManager<IdentityUser> userManager, 
+            IValidator<RegisterDto> registerValidator, IValidator<LoginDto> loginValidator)
         {
             _userManager = userManager;
             _registerValidator = registerValidator;
+            _loginValidator = loginValidator;
         }
 
         [HttpPost("register")]
@@ -43,6 +46,33 @@ namespace DreamCine.Api.Controllers
             }
 
             return BadRequest(result.Errors);
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDto loginDto)
+        {
+            var validationResult = await _loginValidator.ValidateAsync(loginDto);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var user = await _userManager.FindByEmailAsync(loginDto.Email);
+
+            if (user == null)
+            {
+                return Unauthorized("Invalid email or password.");
+            }
+
+            var passwordCheck = await _userManager.CheckPasswordAsync(user, loginDto.Password);
+
+            if (!passwordCheck)
+            {
+                return Unauthorized("Invalid email or password.");
+            }
+
+            return Ok("Login successful!");
         }
     }
 }
