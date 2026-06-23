@@ -4,6 +4,7 @@ using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
 using DreamCine.Api.Models;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,6 +12,7 @@ namespace DreamCine.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class MoviesController : ControllerBase
     {
         private readonly IMovieRepository _movieRepo;
