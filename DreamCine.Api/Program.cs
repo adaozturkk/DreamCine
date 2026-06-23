@@ -4,6 +4,7 @@ using DreamCine.Api.Repository;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
+using DreamCine.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {

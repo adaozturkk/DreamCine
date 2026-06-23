@@ -1,4 +1,5 @@
 ﻿using DreamCine.Api.DTOs.Account;
+using DreamCine.Api.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -11,13 +12,15 @@ namespace DreamCine.Api.Controllers
     public class AccountController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly ITokenService _tokenService;
         private readonly IValidator<RegisterDto> _registerValidator;
         private readonly IValidator<LoginDto> _loginValidator;
 
-        public AccountController(UserManager<IdentityUser> userManager, 
+        public AccountController(UserManager<IdentityUser> userManager, ITokenService tokenService,
             IValidator<RegisterDto> registerValidator, IValidator<LoginDto> loginValidator)
         {
             _userManager = userManager;
+            _tokenService = tokenService;
             _registerValidator = registerValidator;
             _loginValidator = loginValidator;
         }
@@ -72,7 +75,14 @@ namespace DreamCine.Api.Controllers
                 return Unauthorized("Invalid email or password.");
             }
 
-            return Ok("Login successful!");
+            var token = _tokenService.CreateToken(user);
+
+            return Ok(new
+            {
+                Username = user.UserName,
+                Email = user.Email,
+                Token = token
+            });
         }
     }
 }
