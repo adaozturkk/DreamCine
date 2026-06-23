@@ -4,6 +4,7 @@ using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
 using DreamCine.Api.Models;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ namespace DreamCine.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class GenresController : ControllerBase
     {
         private readonly IGenreRepository _genreRepo;
@@ -26,6 +28,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateGenre([FromBody] CreateGenreDto createGenreDto)
         {
             var validationResult = await _createGenreValidator.ValidateAsync(createGenreDto);
@@ -47,6 +50,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             var genres = await _genreRepo.GetAllAsync();
@@ -56,6 +60,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
             var genre = await _genreRepo.GetByIdAsync(id);
@@ -69,6 +74,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateGenreDto updateDto)
         {
             var validationResult = await _updateGenreValidator.ValidateAsync(updateDto);
@@ -95,6 +101,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
             var deletedGenre = await _genreRepo.DeleteAsync(id);

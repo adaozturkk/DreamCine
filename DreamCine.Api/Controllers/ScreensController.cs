@@ -2,6 +2,7 @@
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,6 +10,7 @@ namespace DreamCine.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ScreensController : ControllerBase
     {
         private readonly IScreenRepository _screenRepo;
@@ -23,6 +25,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateScreen([FromBody] CreateScreenDto screenDto)
         {
             var validationResult = await _createScreenValidator.ValidateAsync(screenDto);
@@ -42,6 +45,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             var screens = await _screenRepo.GetAllAsync();
@@ -51,6 +55,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
             var screen = await _screenRepo.GetByIdAsync(id);
@@ -64,6 +69,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateScreenDto updateDto)
         {
             var validationResult = await _updateScreenValidator.ValidateAsync(updateDto);
@@ -89,6 +95,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
             var screen = await _screenRepo.DeleteAsync(id);

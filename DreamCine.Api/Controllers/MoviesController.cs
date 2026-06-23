@@ -32,6 +32,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateMovie([FromBody] CreateMovieDto createMovieDto)
         {
             var validationResult = await _createMovieValidator.ValidateAsync(createMovieDto);
@@ -62,8 +63,8 @@ namespace DreamCine.Api.Controllers
             return Ok(createdMovie!.ToMovieDto());
         }
 
-        [AllowAnonymous]
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll([FromQuery] MovieQueryObject query)
         {
             var moviesModel = await _movieRepo.GetAllAsync(query);
@@ -72,8 +73,8 @@ namespace DreamCine.Api.Controllers
             return Ok(moviesDto);
         }
 
-        [AllowAnonymous]
         [HttpGet("{id:int}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
             var movie = await _movieRepo.GetByIdAsync(id);
@@ -87,6 +88,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateMovieDto movieDto)
         {
             var validationResult = await _updateMovieValidator.ValidateAsync(movieDto);
@@ -123,6 +125,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
             var movie = await _movieRepo.DeleteAsync(id);

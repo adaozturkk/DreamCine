@@ -4,6 +4,7 @@ using DreamCine.Api.Helpers;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,6 +12,7 @@ namespace DreamCine.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class SeatsController : ControllerBase
     {
         private readonly ISeatRepository _seatRepo;
@@ -28,6 +30,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateSeat([FromBody] CreateSeatDto seatDto)
         {
             var validationResult = await _createSeatValidator.ValidateAsync(seatDto);
@@ -54,6 +57,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll([FromQuery] SeatQueryObject query)
         {
             var seats = await _seatRepo.GetAllAsync(query);
@@ -63,6 +67,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
             var seat = await _seatRepo.GetByIdAsync(id);
@@ -76,6 +81,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateSeatDto seatDto)
         {
             var validationResult = await _updateSeatValidator.ValidateAsync(seatDto);
@@ -107,6 +113,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
             var seat = await _seatRepo.DeleteAsync(id);
