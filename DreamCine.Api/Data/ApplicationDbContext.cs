@@ -34,6 +34,10 @@ namespace DreamCine.Api.Data
             };
 
             modelBuilder.Entity<IdentityRole>().HasData(roles);
+
+            modelBuilder.Entity<MovieSession>()
+                .Property(m => m.Price)
+                .HasPrecision(18, 2);
         }
     }
 }

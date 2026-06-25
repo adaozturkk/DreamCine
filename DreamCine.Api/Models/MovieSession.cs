@@ -8,5 +8,6 @@
         public int ScreenId { get; set; }
         public Screen Screen { get; set; } = null!;
         public DateTime SessionTime { get; set; }
+        public decimal Price { get; set; }
     }
 }

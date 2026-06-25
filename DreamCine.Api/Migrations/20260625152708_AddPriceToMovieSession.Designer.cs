@@ -4,6 +4,7 @@ using DreamCine.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DreamCine.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260625152708_AddPriceToMovieSession")]
+    partial class AddPriceToMovieSession
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -102,7 +105,6 @@ namespace DreamCine.Api.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Price")
-                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("ScreenId")
@@ -207,13 +209,13 @@ namespace DreamCine.Api.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "bb6829d7-a5c6-4216-acf6-e8658a8b7c24",
+                            Id = "22debe27-0778-45aa-912b-e0701f49e43c",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "0aa1f064-95bd-41f8-9b61-95570f73ef92",
+                            Id = "083557e1-cbfb-40e6-a96d-1241b6a3f0b3",
                             Name = "User",
                             NormalizedName = "USER"
                         });
