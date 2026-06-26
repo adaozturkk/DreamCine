@@ -19,6 +19,7 @@ namespace DreamCine.Api.Data
         public DbSet<Screen> Screens { get; set; }
         public DbSet<Seat> Seats { get; set; }
         public DbSet<Status> Statuses { get; set; }
+        public DbSet<Ticket> Tickets { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,6 +39,22 @@ namespace DreamCine.Api.Data
             modelBuilder.Entity<MovieSession>()
                 .Property(m => m.Price)
                 .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Ticket>()
+                .Property(t => t.PurchasePrice)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Ticket>()
+                .HasOne(t => t.Seat)
+                .WithMany()
+                .HasForeignKey(t => t.SeatId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Ticket>()
+                .HasOne(t => t.MovieSession)
+                .WithMany()
+                .HasForeignKey(t => t.MovieSessionId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
