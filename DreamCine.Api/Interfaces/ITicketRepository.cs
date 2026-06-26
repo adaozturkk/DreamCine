@@ -1,6 +1,8 @@
-﻿namespace DreamCine.Api.Interfaces
+﻿using DreamCine.Api.Models;
+
+namespace DreamCine.Api.Interfaces
 {
-    public interface ITicketRepository
+    public interface ITicketRepository : IRepository<Ticket>
     {
     }
 }
