@@ -67,7 +67,7 @@ namespace DreamCine.Api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetAll([FromQuery] MovieQueryObject query)
         {
-            var moviesModel = await _movieRepo.GetAllAsync(query);
+            var moviesModel = await _movieRepo.GetAllWithFilteringAsync(query);
             var moviesDto = moviesModel.Select(x => x.ToMovieDto()).ToList();
 
             return Ok(moviesDto);
@@ -112,7 +112,10 @@ namespace DreamCine.Api.Controllers
                 return BadRequest("Selected status does not exist.");
             }
 
-            var movie = await _movieRepo.UpdateAsync(id, movieDto.ToMovieFromUpdateDto());
+            var movieModel = movieDto.ToMovieFromUpdateDto();
+            movieModel.Id = id;
+
+            var movie = await _movieRepo.UpdateAsync(id, movieModel);
 
             if (movie == null)
             {

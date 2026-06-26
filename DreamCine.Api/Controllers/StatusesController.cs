@@ -1,4 +1,5 @@
-﻿using DreamCine.Api.DTOs.Status;
+﻿using DreamCine.Api.DTOs.Movie;
+using DreamCine.Api.DTOs.Status;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
 using FluentValidation;
@@ -86,7 +87,10 @@ namespace DreamCine.Api.Controllers
                 return BadRequest("Status name already exists.");
             }
 
-            var status = await _statusRepo.UpdateAsync(id, statusDto.ToStatusFromUpdateDto());
+            var statusModel = statusDto.ToStatusFromUpdateDto();
+            statusModel.Id = id;
+
+            var status = await _statusRepo.UpdateAsync(id, statusModel);
 
             if (status == null)
             {

@@ -6,39 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DreamCine.Api.Repository
 {
-    public class MovieRepository : IMovieRepository
+    public class MovieRepository : Repository<Movie>, IMovieRepository
     {
-        private readonly ApplicationDbContext _context;
-
-        public MovieRepository(ApplicationDbContext context)
+        public MovieRepository(ApplicationDbContext context) : base(context)
         {
-            _context = context;
         }
 
-        public async Task<Movie> CreateAsync(Movie movieModel)
-        {
-            await _context.Movies.AddAsync(movieModel);
-            await _context.SaveChangesAsync();
-
-            return movieModel;
-        }
-
-        public async Task<Movie?> DeleteAsync(int id)
-        {
-            var movie = await _context.Movies.FindAsync(id);
-
-            if (movie == null)
-            {
-                return null;
-            }
-
-            _context.Movies.Remove(movie);
-            await _context.SaveChangesAsync();
-
-            return movie;
-        }
-
-        public async Task<List<Movie>> GetAllAsync(MovieQueryObject query)
+        public async Task<List<Movie>> GetAllWithFilteringAsync(MovieQueryObject query)
         {
             var movies = _context.Movies.AsQueryable();
 
@@ -76,7 +50,7 @@ namespace DreamCine.Api.Repository
                 .Skip(skipNumber).Take(query.PageSize).ToListAsync();
         }
 
-        public async Task<Movie?> GetByIdAsync(int id)
+        public override async Task<Movie?> GetByIdAsync(int id)
         {
             var movie = await _context.Movies.Include(x => x.MovieGenres)
                 .ThenInclude(x => x.Genre).Include(x => x.Status).FirstOrDefaultAsync(x => x.Id == id);
@@ -89,7 +63,7 @@ namespace DreamCine.Api.Repository
             return movie;
         }
 
-        public async Task<Movie?> UpdateAsync(int id, Movie movieModel)
+        public override async Task<Movie?> UpdateAsync(int id, Movie movieModel)
         {
             var movie = await _context.Movies
                 .Include(x => x.MovieGenres).FirstOrDefaultAsync(x => x.Id == id);
@@ -117,6 +91,11 @@ namespace DreamCine.Api.Repository
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             return updatedMovie;
+        }
+
+        public async Task<bool> ExistsAsync(int id)
+        {
+            return await _context.Movies.AnyAsync(m => m.Id == id);
         }
     }
 }

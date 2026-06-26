@@ -3,13 +3,9 @@ using DreamCine.Api.Models;
 
 namespace DreamCine.Api.Interfaces
 {
-    public interface ISeatRepository
+    public interface ISeatRepository : IRepository<Seat>
     {
-        Task<List<Seat>> GetAllAsync(SeatQueryObject query);
-        Task<Seat?> GetByIdAsync(int id);
-        Task<Seat> CreateAsync(Seat seatModel);
-        Task<Seat?> UpdateAsync(int id, Seat seatModel);
-        Task<Seat?> DeleteAsync(int id);
+        Task<List<Seat>> GetAllWithFilteringAsync(SeatQueryObject query);
         Task<bool> SeatExistsInScreenAsync(string seatNumber, int screenId, int? excludeId = null);
     }
 }

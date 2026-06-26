@@ -84,12 +84,18 @@ namespace DreamCine.Api.Controllers
                 return BadRequest(validationResult.Errors);
             }
 
+            var existingGenre = await _genreRepo.GetByIdAsync(id);
+            if (existingGenre == null)
+            {
+                return NotFound("Genre not found.");
+            }
+
             if (await _genreRepo.NameExistsAsync(updateDto.Name, id))
             {
                 return BadRequest("Genre name already exists.");
             }
 
-            var genreModel = new Genre { Name = updateDto.Name };
+            var genreModel = new Genre { Id = id, Name = updateDto.Name };
             var updatedGenre = await _genreRepo.UpdateAsync(id, genreModel);
 
             if (updatedGenre == null)

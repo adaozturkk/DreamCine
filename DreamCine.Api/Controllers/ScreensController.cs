@@ -1,4 +1,5 @@
-﻿using DreamCine.Api.DTOs.Screen;
+﻿using DreamCine.Api.DTOs.Movie;
+using DreamCine.Api.DTOs.Screen;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
 using FluentValidation;
@@ -84,7 +85,10 @@ namespace DreamCine.Api.Controllers
                 return BadRequest("This screen number already exists.");
             }
 
-            var screen = await _screenRepo.UpdateAsync(id, updateDto.ToScreenFromUpdateDto());
+            var screenModel = updateDto.ToScreenFromUpdateDto();
+            screenModel.Id = id;
+
+            var screen = await _screenRepo.UpdateAsync(id, screenModel);
 
             if (screen == null)
             {

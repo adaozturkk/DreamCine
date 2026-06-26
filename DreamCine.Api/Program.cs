@@ -83,11 +83,13 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 builder.Services.AddScoped<IScreenRepository, ScreenRepository>();
 builder.Services.AddScoped<ISeatRepository, SeatRepository>();
 builder.Services.AddScoped<IStatusRepository, StatusRepository>();
+builder.Services.AddScoped<IMovieSessionRepository, MovieSessionRepository>();
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
@@ -117,21 +119,22 @@ using (var scope = app.Services.CreateScope())
     string adminEmail = "admin@dreamcine.com";
     string adminPassword = "AdminPassword123!";
 
-    if (await userManager.FindByEmailAsync(adminEmail) == null)
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+    if (adminUser == null)
     {
-        var adminUser = new IdentityUser
+        adminUser = new IdentityUser
         {
             UserName = "admin",
             Email = adminEmail,
             EmailConfirmed = true
         };
+        await userManager.CreateAsync(adminUser, adminPassword);
+    }
 
-        var result = await userManager.CreateAsync(adminUser, adminPassword);
-
-        if (result.Succeeded)
-        {
-            await userManager.AddToRoleAsync(adminUser, "Admin");
-        }
+    if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+    {
+        await userManager.AddToRoleAsync(adminUser, "Admin");
     }
 }
 

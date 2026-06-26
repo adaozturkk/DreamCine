@@ -60,7 +60,7 @@ namespace DreamCine.Api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetAll([FromQuery] SeatQueryObject query)
         {
-            var seats = await _seatRepo.GetAllAsync(query);
+            var seats = await _seatRepo.GetAllWithFilteringAsync(query);
             var seatDtos = seats.Select(x => x.ToSeatDto()).ToList();
 
             return Ok(seatDtos);
@@ -102,6 +102,8 @@ namespace DreamCine.Api.Controllers
             }
 
             var seatModel = seatDto.ToSeatFromUpdateSeatDto();
+            seatModel.Id = id;
+
             var updatedSeat = await _seatRepo.UpdateAsync(id, seatModel);
 
             if (updatedSeat == null)
