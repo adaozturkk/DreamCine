@@ -1,4 +1,6 @@
 ﻿using DreamCine.Api.Data;
+using DreamCine.Api.Enums;
+using DreamCine.Api.Helpers;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -11,16 +13,52 @@ namespace DreamCine.Api.Repository
         {
         }
 
-        public override async Task<List<Ticket>> GetAllAsync()
+        public async Task<List<Ticket>> GetAllAsync(TicketQuery query)
         {
-            return await _context.Tickets
+            var tickets = _context.Tickets
                 .Include(t => t.User)
                 .Include(t => t.Seat)
                 .Include(t => t.MovieSession)
                     .ThenInclude(ms => ms.Movie)
                 .Include(t => t.MovieSession)
                     .ThenInclude(ms => ms.Screen)
-                .ToListAsync();
+                .AsQueryable();
+            
+            if (!string.IsNullOrWhiteSpace(query.Status))
+            {
+                if (Enum.TryParse<TicketStatus>(query.Status, true, out var parsedStatus))
+                {
+                    tickets = tickets.Where(t => t.Status == parsedStatus);
+                }
+                else
+                {
+                    tickets = tickets.Where(t => false);
+                }
+            }
+
+            if (query.MovieSessionId != null)
+            {
+                tickets = tickets.Where(t => t.MovieSessionId == query.MovieSessionId);
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.UserEmail))
+            {
+                tickets = tickets.Where(t => t.User.Email == query.UserEmail);
+            }
+
+            switch (query.SortBy?.ToLower())
+            {
+                case "bookingtime":
+                    tickets = query.IsDescending ? tickets.OrderByDescending(x => x.BookingTime) : tickets.OrderBy(x => x.BookingTime);
+                    break;
+                default:
+                    tickets = query.IsDescending ? tickets.OrderByDescending(x => x.Id) : tickets.OrderBy(x => x.Id);
+                    break;
+            }
+
+            var skipNumber = (query.PageNumber - 1) * query.PageSize;
+
+            return await tickets.Skip(skipNumber).Take(query.PageSize).ToListAsync();
         }
 
         public override async Task<Ticket?> GetByIdAsync(int id)

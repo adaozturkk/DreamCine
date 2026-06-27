@@ -1,4 +1,5 @@
 ﻿using DreamCine.Api.DTOs.Ticket;
+using DreamCine.Api.Helpers;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
 using DreamCine.Api.Models;
@@ -93,9 +94,9 @@ namespace DreamCine.Api.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] TicketQuery query)
         {
-            var tickets = await _ticketRepo.GetAllAsync();
+            var tickets = await _ticketRepo.GetAllAsync(query);
             var ticketDtos = tickets.Select(t => t.ToTicketDto());
 
             return Ok(ticketDtos);

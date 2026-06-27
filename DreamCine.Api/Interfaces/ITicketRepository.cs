@@ -1,4 +1,5 @@
-﻿using DreamCine.Api.Models;
+﻿using DreamCine.Api.Helpers;
+using DreamCine.Api.Models;
 
 namespace DreamCine.Api.Interfaces
 {
@@ -6,5 +7,6 @@ namespace DreamCine.Api.Interfaces
     {
         Task<bool> IsSeatTakenAsync(int movieSessionId, int seatId);
         Task<List<Ticket>> GetTicketsByUserIdAsync(string userId);
+        Task<List<Ticket>> GetAllAsync(TicketQuery query);
     }
 }
