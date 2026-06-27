@@ -46,5 +46,9 @@ namespace DreamCine.Api.Repository
             return await _context.Seats.AnyAsync(x => x.SeatNumber.ToLower() == seatNumber.ToLower() && x.ScreenId == screenId && x.Id != excludeId);
         }
 
+        public async Task<bool> ExistsAsync(int id)
+        {
+            return await _context.Seats.AnyAsync(x => x.Id == id);
+        }
     }
 }

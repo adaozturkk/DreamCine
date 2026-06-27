@@ -34,5 +34,27 @@ namespace DreamCine.Api.Repository
                     .ThenInclude(ms => ms.Screen)
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
+
+        public async Task<bool> IsSeatTakenAsync(int movieSessionId, int seatId)
+        {
+            return await _context.Tickets.AnyAsync(t =>
+                t.MovieSessionId == movieSessionId &&
+                t.SeatId == seatId &&
+                t.Status != Enums.TicketStatus.Cancelled &&
+                t.Status != Enums.TicketStatus.Refunded);
+        }
+
+        public async Task<List<Ticket>> GetTicketsByUserIdAsync(string userId)
+        {
+            return await _context.Tickets
+                .Where(t => t.UserId == userId)
+                .Include(t => t.User)
+                .Include(t => t.Seat)
+                .Include(t => t.MovieSession)
+                    .ThenInclude(ms => ms.Movie)
+                .Include(t => t.MovieSession)
+                    .ThenInclude(ms => ms.Screen)
+                .ToListAsync();
+        }
     }
 }

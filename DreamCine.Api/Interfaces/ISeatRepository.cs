@@ -7,5 +7,6 @@ namespace DreamCine.Api.Interfaces
     {
         Task<List<Seat>> GetAllWithFilteringAsync(SeatQueryObject query);
         Task<bool> SeatExistsInScreenAsync(string seatNumber, int screenId, int? excludeId = null);
+        Task<bool> ExistsAsync(int id);
     }
 }
