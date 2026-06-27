@@ -1,5 +1,6 @@
 ﻿using DreamCine.Api.DTOs.Movie;
 using DreamCine.Api.DTOs.MovieSession;
+using DreamCine.Api.Helpers;
 using DreamCine.Api.Interfaces;
 using DreamCine.Api.Mappers;
 using FluentValidation;
@@ -66,9 +67,9 @@ namespace DreamCine.Api.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] MovieSessionQuery query)
         {
-            var sessions = await _sessionRepo.GetAllAsync();
+            var sessions = await _sessionRepo.GetAllAsync(query);
             var sessionsDto = sessions.Select(s => s.ToMovieSessionDto()).ToList();
 
             return Ok(sessionsDto);
