@@ -20,14 +20,16 @@ namespace DreamCine.Api.Controllers
         private readonly IMovieSessionRepository _sessionRepo;
         private readonly ISeatRepository _seatRepo;
         private readonly IValidator<CreateTicketDto> _createTicketValidator;
+        private readonly IPaymentService _paymentService;
 
         public TicketsController(ITicketRepository ticketRepo, IMovieSessionRepository sessionRepo,
-            ISeatRepository seatRepo, IValidator<CreateTicketDto> createTicketValidator)
+            ISeatRepository seatRepo, IValidator<CreateTicketDto> createTicketValidator, IPaymentService paymentService)
         {
             _ticketRepo = ticketRepo;
             _sessionRepo = sessionRepo;
             _seatRepo = seatRepo;
             _createTicketValidator = createTicketValidator;
+            _paymentService = paymentService;
         }
 
         [HttpPost]
@@ -69,9 +71,17 @@ namespace DreamCine.Api.Controllers
                 return BadRequest("This seat is already taken for the selected session.");
             }
 
-            var ticketModel = createDto.ToTicketFromCreateDto(userId, currentPrice);
-            var createdTicket = await _ticketRepo.CreateAsync(ticketModel);
+            var paymentResult = await _paymentService.ProcessPaymentAsync(createDto.PaymentInfo, currentPrice);
 
+            if (!paymentResult)
+            {
+                return BadRequest("Payment failed. Please check your card details or limit.");
+            }
+
+            var ticketModel = createDto.ToTicketFromCreateDto(userId, currentPrice);
+            ticketModel.Status = Enums.TicketStatus.Paid;
+
+            var createdTicket = await _ticketRepo.CreateAsync(ticketModel);
             var fullTicket = await _ticketRepo.GetByIdAsync(createdTicket.Id);
 
             return Ok(fullTicket?.ToTicketDto());
