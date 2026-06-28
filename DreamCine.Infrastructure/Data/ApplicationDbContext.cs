@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DreamCine.Infrastructure.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
+    public class ApplicationDbContext : IdentityDbContext<AppUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> dbContextOptions) : base(dbContextOptions)
         {
@@ -23,10 +23,11 @@ namespace DreamCine.Infrastructure.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<MovieGenre>()
                 .HasKey(mg => new { mg.MovieId, mg.GenreId });
 
-            base.OnModelCreating(modelBuilder);
 
             List<IdentityRole> roles = new List<IdentityRole>
             {

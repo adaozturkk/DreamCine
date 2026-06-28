@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using DreamCine.Core.Models;
 
 namespace DreamCine.Application.Interfaces
 {
     public interface ITokenService
     {
-        Task<string> CreateToken(IdentityUser user);
+        Task<string> CreateToken(AppUser user);
     }
 }

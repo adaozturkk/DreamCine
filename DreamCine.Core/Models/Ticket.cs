@@ -7,7 +7,7 @@ namespace DreamCine.Core.Models
     {
         public int Id { get; set; }
         public string UserId { get; set; } = null!;
-        public IdentityUser User { get; set; } = null!;
+        public AppUser User { get; set; } = null!;
         public int MovieSessionId { get; set; }
         public MovieSession MovieSession { get; set; } = null!;
         public int SeatId { get; set; }

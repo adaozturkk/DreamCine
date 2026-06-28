@@ -1,5 +1,6 @@
 ﻿using DreamCine.Application.DTOs.Account;
 using DreamCine.Application.Interfaces;
+using DreamCine.Core.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,12 +11,12 @@ namespace DreamCine.Api.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<AppUser> _userManager;
         private readonly ITokenService _tokenService;
         private readonly IValidator<RegisterDto> _registerValidator;
         private readonly IValidator<LoginDto> _loginValidator;
 
-        public AccountController(UserManager<IdentityUser> userManager, ITokenService tokenService,
+        public AccountController(UserManager<AppUser> userManager, ITokenService tokenService,
             IValidator<RegisterDto> registerValidator, IValidator<LoginDto> loginValidator)
         {
             _userManager = userManager;
@@ -34,7 +35,7 @@ namespace DreamCine.Api.Controllers
                 return BadRequest(validationResult.Errors);
             }
 
-            var user = new IdentityUser
+            var user = new AppUser
             {
                 UserName = registerDto.Username,
                 Email = registerDto.Email
