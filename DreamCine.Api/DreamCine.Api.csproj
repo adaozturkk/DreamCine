@@ -19,4 +19,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DreamCine.Application\DreamCine.Application.csproj" />
+    <ProjectReference Include="..\DreamCine.Core\DreamCine.Core.csproj" />
+    <ProjectReference Include="..\DreamCine.Infrastructure\DreamCine.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

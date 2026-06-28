@@ -1,7 +1,6 @@
-﻿using DreamCine.Api.DTOs.Account;
-using DreamCine.Api.Interfaces;
+﻿using DreamCine.Application.DTOs.Account;
+using DreamCine.Application.Interfaces;
 using FluentValidation;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 

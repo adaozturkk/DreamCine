@@ -1,12 +1,9 @@
-﻿using DreamCine.Api.DTOs.Movie;
-using DreamCine.Api.DTOs.MovieSession;
-using DreamCine.Api.Helpers;
-using DreamCine.Api.Interfaces;
-using DreamCine.Api.Mappers;
+﻿using DreamCine.Application.DTOs.MovieSession;
+using DreamCine.Core.Helpers;
+using DreamCine.Core.Interfaces;
+using DreamCine.Application.Mappers;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DreamCine.Api.Controllers

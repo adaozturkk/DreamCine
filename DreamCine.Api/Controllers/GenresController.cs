@@ -1,13 +1,10 @@
-﻿using DreamCine.Api.Data;
-using DreamCine.Api.DTOs.Genre;
-using DreamCine.Api.Interfaces;
-using DreamCine.Api.Mappers;
-using DreamCine.Api.Models;
+﻿using DreamCine.Application.DTOs.Genre;
+using DreamCine.Core.Interfaces;
+using DreamCine.Application.Mappers;
+using DreamCine.Core.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace DreamCine.Api.Controllers
 {

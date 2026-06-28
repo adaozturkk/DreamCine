@@ -1,11 +1,11 @@
-﻿using DreamCine.Api.DTOs.Ticket;
-using DreamCine.Api.Helpers;
-using DreamCine.Api.Interfaces;
-using DreamCine.Api.Mappers;
-using DreamCine.Api.Models;
+﻿using DreamCine.Application.DTOs.Ticket;
+using DreamCine.Core.Helpers;
+using DreamCine.Core.Interfaces;
+using DreamCine.Application.Interfaces;
+using DreamCine.Application.Mappers;
+using DreamCine.Core.Enums;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -79,7 +79,7 @@ namespace DreamCine.Api.Controllers
             }
 
             var ticketModel = createDto.ToTicketFromCreateDto(userId, currentPrice);
-            ticketModel.Status = Enums.TicketStatus.Paid;
+            ticketModel.Status = TicketStatus.Paid;
 
             var createdTicket = await _ticketRepo.CreateAsync(ticketModel);
             var fullTicket = await _ticketRepo.GetByIdAsync(createdTicket.Id);

@@ -1,9 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36414.22 d17.14
+VisualStudioVersion = 17.14.36414.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DreamCine.Api", "DreamCine.Api\DreamCine.Api.csproj", "{4EA9303C-AF2F-4604-89A5-041AD18A70D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DreamCine.Core", "DreamCine.Core\DreamCine.Core.csproj", "{09BE089F-F0B1-4609-B69D-9ACE16EE67C4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DreamCine.Application", "DreamCine.Application\DreamCine.Application.csproj", "{DE88D0DA-5A42-44A6-BD95-34007904448C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DreamCine.Infrastructure", "DreamCine.Infrastructure\DreamCine.Infrastructure.csproj", "{CF51CFAE-7B40-4F6C-B5E6-066807E22625}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +21,18 @@ Global
 		{4EA9303C-AF2F-4604-89A5-041AD18A70D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4EA9303C-AF2F-4604-89A5-041AD18A70D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4EA9303C-AF2F-4604-89A5-041AD18A70D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09BE089F-F0B1-4609-B69D-9ACE16EE67C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09BE089F-F0B1-4609-B69D-9ACE16EE67C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09BE089F-F0B1-4609-B69D-9ACE16EE67C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09BE089F-F0B1-4609-B69D-9ACE16EE67C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE88D0DA-5A42-44A6-BD95-34007904448C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE88D0DA-5A42-44A6-BD95-34007904448C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE88D0DA-5A42-44A6-BD95-34007904448C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE88D0DA-5A42-44A6-BD95-34007904448C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF51CFAE-7B40-4F6C-B5E6-066807E22625}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF51CFAE-7B40-4F6C-B5E6-066807E22625}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF51CFAE-7B40-4F6C-B5E6-066807E22625}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF51CFAE-7B40-4F6C-B5E6-066807E22625}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

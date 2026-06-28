@@ -1,10 +1,11 @@
-using DreamCine.Api.Data;
-using DreamCine.Api.Interfaces;
-using DreamCine.Api.Repository;
+using DreamCine.Infrastructure.Data;
+using DreamCine.Core.Interfaces;
+using DreamCine.Application.Interfaces;
+using DreamCine.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
-using DreamCine.Api.Services;
+using DreamCine.Application.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -45,7 +46,10 @@ builder.Services.AddSwaggerGen(option =>
 });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+        b => b.MigrationsAssembly("DreamCine.Infrastructure"));
+});
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 
@@ -95,7 +99,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
-builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddValidatorsFromAssemblyContaining<DreamCine.Application.Validations.Movie.CreateMovieDtoValidator>();
 
 var app = builder.Build();
 

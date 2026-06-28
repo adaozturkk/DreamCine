@@ -1,11 +1,9 @@
-﻿using DreamCine.Api.DTOs.Seat;
-using DreamCine.Api.DTOs.Status;
-using DreamCine.Api.Helpers;
-using DreamCine.Api.Interfaces;
-using DreamCine.Api.Mappers;
+﻿using DreamCine.Application.DTOs.Seat;
+using DreamCine.Core.Helpers;
+using DreamCine.Core.Interfaces;
+using DreamCine.Application.Mappers;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DreamCine.Api.Controllers
