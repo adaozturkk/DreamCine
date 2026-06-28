@@ -110,6 +110,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<DreamCine.Api.Middlewares.GlobalExceptionMiddleware>();
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
