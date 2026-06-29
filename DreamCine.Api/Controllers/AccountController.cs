@@ -3,6 +3,7 @@ using DreamCine.Application.DTOs.Account;
 using DreamCine.Application.Interfaces;
 using DreamCine.Core.Models;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,6 +11,7 @@ namespace DreamCine.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AccountController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
@@ -17,18 +19,21 @@ namespace DreamCine.Api.Controllers
         private readonly IValidator<RegisterDto> _registerValidator;
         private readonly IValidator<LoginDto> _loginValidator;
         private readonly IValidator<TokenDto> _tokenValidator;
+        private readonly IValidator<AssignRoleDto> _assignRoleValidator;
 
-        public AccountController(UserManager<AppUser> userManager, ITokenService tokenService,
-            IValidator<RegisterDto> registerValidator, IValidator<LoginDto> loginValidator, IValidator<TokenDto> tokenValidator)
+        public AccountController(UserManager<AppUser> userManager, ITokenService tokenService, IValidator<RegisterDto> registerValidator,
+             IValidator<LoginDto> loginValidator, IValidator<TokenDto> tokenValidator, IValidator<AssignRoleDto> assignRoleValidator)
         {
             _userManager = userManager;
             _tokenService = tokenService;
             _registerValidator = registerValidator;
             _loginValidator = loginValidator;
             _tokenValidator = tokenValidator;
+            _assignRoleValidator = assignRoleValidator;
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register(RegisterDto registerDto)
         {
             var validationResult = await _registerValidator.ValidateAsync(registerDto);
@@ -64,6 +69,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             var validationResult = await _loginValidator.ValidateAsync(loginDto);
@@ -95,6 +101,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpPost("refresh-token")]
+        [AllowAnonymous]
         public async Task<IActionResult> RefreshToken([FromBody] TokenDto tokenDto)
         {
             var validationResult = await _tokenValidator.ValidateAsync(tokenDto);
@@ -126,6 +133,34 @@ namespace DreamCine.Api.Controllers
                 AccessToken = newAccessToken,
                 RefreshToken = newRefreshToken
             });
+        }
+
+        [HttpPost("assign-role")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignRole([FromBody] AssignRoleDto roleDto)
+        {
+            var validationResult = await _assignRoleValidator.ValidateAsync(roleDto);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var user = await _userManager.FindByEmailAsync(roleDto.Email);
+            if (user == null)
+            {
+                return NotFound("Email not found.");
+            }
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            await _userManager.RemoveFromRolesAsync(user, currentRoles);
+
+            var assignedRole = await _userManager.AddToRoleAsync(user, roleDto.Role.ToString());
+            if (!assignedRole.Succeeded)
+            {
+                return BadRequest(assignedRole.Errors);
+            }
+
+            return Ok("Role assigned successfully.");
         }
     }
 }

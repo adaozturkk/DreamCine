@@ -9,12 +9,18 @@ using DreamCine.Application.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using DreamCine.Core.Models;
+using System.Text.Json.Serialization;
+using DreamCine.Core.Enums;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
@@ -125,6 +131,15 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+    foreach (var roleName in Enum.GetValues(typeof(UserRoles)))
+    {
+        if (!await roleManager.RoleExistsAsync(roleName.ToString()))
+        {
+            await roleManager.CreateAsync(new IdentityRole(roleName.ToString()));
+        }
+    }
 
     string adminEmail = "admin@dreamcine.com";
     string adminPassword = "AdminPassword123!";
