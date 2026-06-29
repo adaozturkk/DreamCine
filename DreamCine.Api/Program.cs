@@ -124,7 +124,7 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
 
     string adminEmail = "admin@dreamcine.com";
     string adminPassword = "AdminPassword123!";
@@ -133,7 +133,7 @@ using (var scope = app.Services.CreateScope())
 
     if (adminUser == null)
     {
-        adminUser = new IdentityUser
+        adminUser = new AppUser
         {
             UserName = "admin",
             Email = adminEmail,
