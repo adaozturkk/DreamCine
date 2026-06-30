@@ -6,6 +6,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace DreamCine.Api.Controllers
 {
@@ -23,10 +24,12 @@ namespace DreamCine.Api.Controllers
         private readonly IValidator<AssignRoleDto> _assignRoleValidator;
         private readonly IValidator<ForgotPasswordDto> _forgotPasswordValidator;
         private readonly IValidator<ResetPasswordDto> _resetPasswordValidator;
+        private readonly IValidator<ChangePasswordDto> _changePasswordValidator;
 
         public AccountController(UserManager<AppUser> userManager, ITokenService tokenService,  IValidator<RegisterDto> registerValidator,
              IValidator<LoginDto> loginValidator, IValidator<TokenDto> tokenValidator, IValidator<AssignRoleDto> assignRoleValidator, 
-             IEmailService emailService, IValidator<ForgotPasswordDto> forgotPasswordValidator, IValidator<ResetPasswordDto> resetPasswordValidator)
+             IEmailService emailService, IValidator<ForgotPasswordDto> forgotPasswordValidator, IValidator<ResetPasswordDto> resetPasswordValidator,
+             IValidator<ChangePasswordDto> changePasswordValidator)
         {
             _userManager = userManager;
             _tokenService = tokenService;
@@ -37,6 +40,7 @@ namespace DreamCine.Api.Controllers
             _emailService = emailService;
             _forgotPasswordValidator = forgotPasswordValidator;
             _resetPasswordValidator = resetPasswordValidator;
+            _changePasswordValidator = changePasswordValidator;
         }
 
         [HttpPost("register")]
@@ -218,6 +222,31 @@ namespace DreamCine.Api.Controllers
             }
 
             return Ok("Password has been reset successfully.");
+        }
+
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto passwordDto)
+        {
+            var validationResult = await _changePasswordValidator.ValidateAsync(passwordDto);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+            var user = await _userManager.FindByEmailAsync(userEmail);
+            if (user == null)
+            {
+                return BadRequest("Invalid request.");
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, passwordDto.CurrentPassword, passwordDto.NewPassword);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return Ok("Password changed successfully.");
         }
     }
 }
