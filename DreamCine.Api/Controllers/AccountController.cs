@@ -16,13 +16,17 @@ namespace DreamCine.Api.Controllers
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly ITokenService _tokenService;
+        private readonly IEmailService _emailService;
         private readonly IValidator<RegisterDto> _registerValidator;
         private readonly IValidator<LoginDto> _loginValidator;
         private readonly IValidator<TokenDto> _tokenValidator;
         private readonly IValidator<AssignRoleDto> _assignRoleValidator;
+        private readonly IValidator<ForgotPasswordDto> _forgotPasswordValidator;
+        private readonly IValidator<ResetPasswordDto> _resetPasswordValidator;
 
-        public AccountController(UserManager<AppUser> userManager, ITokenService tokenService, IValidator<RegisterDto> registerValidator,
-             IValidator<LoginDto> loginValidator, IValidator<TokenDto> tokenValidator, IValidator<AssignRoleDto> assignRoleValidator)
+        public AccountController(UserManager<AppUser> userManager, ITokenService tokenService,  IValidator<RegisterDto> registerValidator,
+             IValidator<LoginDto> loginValidator, IValidator<TokenDto> tokenValidator, IValidator<AssignRoleDto> assignRoleValidator, 
+             IEmailService emailService, IValidator<ForgotPasswordDto> forgotPasswordValidator, IValidator<ResetPasswordDto> resetPasswordValidator)
         {
             _userManager = userManager;
             _tokenService = tokenService;
@@ -30,6 +34,9 @@ namespace DreamCine.Api.Controllers
             _loginValidator = loginValidator;
             _tokenValidator = tokenValidator;
             _assignRoleValidator = assignRoleValidator;
+            _emailService = emailService;
+            _forgotPasswordValidator = forgotPasswordValidator;
+            _resetPasswordValidator = resetPasswordValidator;
         }
 
         [HttpPost("register")]
@@ -161,6 +168,56 @@ namespace DreamCine.Api.Controllers
             }
 
             return Ok("Role assigned successfully.");
+        }
+
+        [HttpPost("forgot-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto passwordDto)
+        {
+            var validationResult = await _forgotPasswordValidator.ValidateAsync(passwordDto);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var user = await _userManager.FindByEmailAsync(passwordDto.Email);
+            if (user == null)
+            {
+                return Ok("If an account exists with this email, a password reset link has been sent.");
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var resetLink = $"http://localhost:3000/reset-password?email={user.Email}&token={token}";
+            string body = $"<h2>Password Reset Request</h2><p>To reset your password, please click the link below:</p><a href='{resetLink}'>Click here to reset your password</a>";
+
+            await _emailService.SendEmailAsync(user.Email, "Password Reset Request", body);
+
+            return Ok("If an account exists with this email, a password reset link has been sent.");
+        }
+
+        [HttpPost("reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto passwordDto)
+        {
+            var validationResult = await _resetPasswordValidator.ValidateAsync(passwordDto);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var user = await _userManager.FindByEmailAsync(passwordDto.Email);
+            if (user == null)
+            {
+                return BadRequest("Invalid request.");
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, passwordDto.Token, passwordDto.NewPassword);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return Ok("Password has been reset successfully.");
         }
     }
 }
