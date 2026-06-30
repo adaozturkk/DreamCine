@@ -26,38 +26,6 @@ namespace DreamCine.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-
-            modelBuilder.Entity<MovieGenre>()
-                .HasKey(mg => new { mg.MovieId, mg.GenreId });
-
-
-            List<IdentityRole> roles = new List<IdentityRole>
-            {
-                new IdentityRole { Name = "Admin", NormalizedName = "ADMIN" },
-                new IdentityRole { Name = "User", NormalizedName = "USER" }
-            };
-
-            modelBuilder.Entity<IdentityRole>().HasData(roles);
-
-            modelBuilder.Entity<MovieSession>()
-                .Property(m => m.Price)
-                .HasPrecision(18, 2);
-
-            modelBuilder.Entity<Ticket>()
-                .Property(t => t.PurchasePrice)
-                .HasPrecision(18, 2);
-
-            modelBuilder.Entity<Ticket>()
-                .HasOne(t => t.Seat)
-                .WithMany()
-                .HasForeignKey(t => t.SeatId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Ticket>()
-                .HasOne(t => t.MovieSession)
-                .WithMany()
-                .HasForeignKey(t => t.MovieSessionId)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

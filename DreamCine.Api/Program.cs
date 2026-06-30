@@ -132,15 +132,6 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-
-    foreach (var roleName in Enum.GetValues(typeof(UserRoles)))
-    {
-        if (!await roleManager.RoleExistsAsync(roleName.ToString()))
-        {
-            await roleManager.CreateAsync(new IdentityRole(roleName.ToString()));
-        }
-    }
 
     string adminEmail = "admin@dreamcine.com";
     string adminPassword = "AdminPassword123!";
