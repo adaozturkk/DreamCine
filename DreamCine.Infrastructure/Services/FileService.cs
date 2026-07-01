@@ -20,7 +20,18 @@ namespace DreamCine.Infrastructure.Services
                 throw new ArgumentException("Invalid or empty file was uploaded.");
             }
 
-            string fileExtension = Path.GetExtension(file.FileName);
+            if (file.Length > 5 * 1024 * 1024)
+            {
+                throw new ArgumentException("File size cannot exceed 5 MB.");
+            }
+
+            var allowedExtension = new[]{ ".jpg", ".jpeg", ".png", ".webp" };
+            string fileExtension = Path.GetExtension(file.FileName).ToLower();
+            if (!allowedExtension.Contains(fileExtension))
+            {
+                throw new ArgumentException("Only .jpg, .jpeg, .png, and .webp files are allowed.");
+            }
+
             string uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
 
             string uploadsFolder = Path.Combine(_env.WebRootPath, folderName);
