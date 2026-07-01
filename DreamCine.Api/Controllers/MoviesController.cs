@@ -5,6 +5,7 @@ using DreamCine.Application.Mappers;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using DreamCine.Application.Interfaces;
 
 namespace DreamCine.Api.Controllers
 {
@@ -18,20 +19,23 @@ namespace DreamCine.Api.Controllers
         private readonly IStatusRepository _statusRepo;
         private readonly IValidator<CreateMovieDto> _createMovieValidator;
         private readonly IValidator<UpdateMovieDto> _updateMovieValidator;
+        private readonly IFileService _fileService;
 
         public MoviesController(IMovieRepository movieRepo, IGenreRepository genreRepo, IStatusRepository statusRepo,
-            IValidator<CreateMovieDto> createMovieValidator, IValidator<UpdateMovieDto> updateMovieValidator)
+            IValidator<CreateMovieDto> createMovieValidator, IValidator<UpdateMovieDto> updateMovieValidator,
+            IFileService fileService)
         {
             _movieRepo = movieRepo;
             _genreRepo = genreRepo;
             _statusRepo = statusRepo;
             _createMovieValidator = createMovieValidator;
             _updateMovieValidator = updateMovieValidator;
+            _fileService = fileService;
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateMovie([FromBody] CreateMovieDto createMovieDto)
+        public async Task<IActionResult> CreateMovie([FromForm] CreateMovieDto createMovieDto)
         {
             var validationResult = await _createMovieValidator.ValidateAsync(createMovieDto);
 
@@ -55,6 +59,13 @@ namespace DreamCine.Api.Controllers
             }
 
             var movieModel = createMovieDto.ToMovieFromCreateDto();
+
+            if (createMovieDto.PosterImage != null)
+            {
+                string fileName = await _fileService.UploadFileAsync(createMovieDto.PosterImage, "images/posters");
+                movieModel.PosterPath = "images/posters/" + fileName;
+            }
+            
             await _movieRepo.CreateAsync(movieModel);
             var createdMovie = await _movieRepo.GetByIdAsync(movieModel.Id);
 

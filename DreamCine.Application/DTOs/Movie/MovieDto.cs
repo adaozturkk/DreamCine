@@ -11,5 +11,6 @@
         public List<string> Genres { get; set; } = new List<string>();
         public int StatusId { get; set; }
         public string StatusName { get; set; } = string.Empty;
+        public string? PosterPath { get; set; }
     }
 }

@@ -31,7 +31,8 @@ namespace DreamCine.Application.Mappers
                 ReleaseDate = movieModel.ReleaseDate,
                 Genres = movieModel.MovieGenres.Select(x => x.Genre.Name).ToList(),
                 StatusId = movieModel.StatusId,
-                StatusName = movieModel.Status?.Name ?? string.Empty
+                StatusName = movieModel.Status?.Name ?? string.Empty,
+                PosterPath = movieModel.PosterPath
             };
         }
 

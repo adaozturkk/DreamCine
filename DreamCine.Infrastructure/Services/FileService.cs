@@ -25,16 +25,17 @@ namespace DreamCine.Infrastructure.Services
                 throw new ArgumentException("File size cannot exceed 5 MB.");
             }
 
-            var allowedExtension = new[]{ ".jpg", ".jpeg", ".png", ".webp" };
+            var allowedExtension = new[]{ ".jpg", ".jpeg", ".png", ".webp", ".jfif" };
             string fileExtension = Path.GetExtension(file.FileName).ToLower();
             if (!allowedExtension.Contains(fileExtension))
             {
-                throw new ArgumentException("Only .jpg, .jpeg, .png, and .webp files are allowed.");
+                throw new ArgumentException("Only .jpg, .jpeg, .jfif, .png, and .webp files are allowed.");
             }
 
             string uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
 
-            string uploadsFolder = Path.Combine(_env.WebRootPath, folderName);
+            string webRoothPath = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
+            string uploadsFolder = Path.Combine(webRoothPath, folderName);
             if (!Directory.Exists(uploadsFolder))
             {
                 Directory.CreateDirectory(uploadsFolder);
