@@ -1,5 +1,4 @@
 ﻿using DreamCine.Core.Enums;
-using Microsoft.AspNetCore.Identity;
 
 namespace DreamCine.Core.Models
 {

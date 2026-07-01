@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace DreamCine.Core.Models
+﻿namespace DreamCine.Core.Models
 {
     public class Movie
     {
