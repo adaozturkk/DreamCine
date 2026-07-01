@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using DreamCine.Core.Models;
 using System.Text.Json.Serialization;
 using DreamCine.Core.Enums;
+using DreamCine.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -105,6 +106,7 @@ builder.Services.AddScoped<IMovieSessionRepository, MovieSessionRepository>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
@@ -125,6 +127,8 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseStaticFiles();
 
 app.MapControllers();
 
