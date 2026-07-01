@@ -8,7 +8,6 @@ namespace DreamCine.Core.Models
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public int Duration { get; set; }
-        [Precision(3, 1)]
         public decimal? Rating { get; set; }
         public DateTime ReleaseDate { get; set; }
         public List<MovieGenre> MovieGenres { get; set; } = new List<MovieGenre>();

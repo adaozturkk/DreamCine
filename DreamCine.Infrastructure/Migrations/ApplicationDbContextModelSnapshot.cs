@@ -107,7 +107,7 @@ namespace DreamCine.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Genres");
+                    b.ToTable("Genres", (string)null);
                 });
 
             modelBuilder.Entity("DreamCine.Core.Models.Movie", b =>
@@ -147,7 +147,7 @@ namespace DreamCine.Infrastructure.Migrations
 
                     b.HasIndex("Title");
 
-                    b.ToTable("Movies");
+                    b.ToTable("Movies", (string)null);
                 });
 
             modelBuilder.Entity("DreamCine.Core.Models.MovieGenre", b =>
@@ -162,7 +162,7 @@ namespace DreamCine.Infrastructure.Migrations
 
                     b.HasIndex("GenreId");
 
-                    b.ToTable("MovieGenres");
+                    b.ToTable("MovieGenres", (string)null);
                 });
 
             modelBuilder.Entity("DreamCine.Core.Models.MovieSession", b =>
@@ -192,7 +192,7 @@ namespace DreamCine.Infrastructure.Migrations
 
                     b.HasIndex("ScreenId");
 
-                    b.ToTable("MovieSessions");
+                    b.ToTable("MovieSessions", (string)null);
                 });
 
             modelBuilder.Entity("DreamCine.Core.Models.Screen", b =>
@@ -211,7 +211,7 @@ namespace DreamCine.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Screens");
+                    b.ToTable("Screens", (string)null);
                 });
 
             modelBuilder.Entity("DreamCine.Core.Models.Seat", b =>
@@ -233,7 +233,7 @@ namespace DreamCine.Infrastructure.Migrations
 
                     b.HasIndex("ScreenId");
 
-                    b.ToTable("Seats");
+                    b.ToTable("Seats", (string)null);
                 });
 
             modelBuilder.Entity("DreamCine.Core.Models.Status", b =>
@@ -250,7 +250,7 @@ namespace DreamCine.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Statuses");
+                    b.ToTable("Statuses", (string)null);
                 });
 
             modelBuilder.Entity("DreamCine.Core.Models.Ticket", b =>
@@ -289,7 +289,7 @@ namespace DreamCine.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Tickets");
+                    b.ToTable("Tickets", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

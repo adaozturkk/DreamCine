@@ -10,6 +10,9 @@ namespace DreamCine.Infrastructure.Configurations
         {
             builder.HasIndex(x => x.Title);
             builder.HasIndex(x => x.ReleaseDate);
+            builder
+                .Property(x => x.Rating)
+                .HasPrecision(3, 1);
         }
     }
 }
