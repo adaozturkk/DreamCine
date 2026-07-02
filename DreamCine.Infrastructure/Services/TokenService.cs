@@ -8,7 +8,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace DreamCine.Application.Services
+namespace DreamCine.Infrastructure.Services
 {
     public class TokenService : ITokenService
     {

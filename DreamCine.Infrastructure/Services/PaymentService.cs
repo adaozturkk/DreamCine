@@ -1,7 +1,7 @@
 ﻿using DreamCine.Application.DTOs.Payment;
 using DreamCine.Application.Interfaces;
 
-namespace DreamCine.Application.Services
+namespace DreamCine.Infrastructure.Services
 {
     public class PaymentService : IPaymentService
     {

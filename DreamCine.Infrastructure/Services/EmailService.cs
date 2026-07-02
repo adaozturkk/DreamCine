@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using System.Net;
 using System.Net.Mail;
 
-namespace DreamCine.Application.Services
+namespace DreamCine.Infrastructure.Services
 {
     public class EmailService : IEmailService
     {

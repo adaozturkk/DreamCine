@@ -5,13 +5,11 @@ using DreamCine.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
-using DreamCine.Application.Services;
+using DreamCine.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using DreamCine.Core.Models;
 using System.Text.Json.Serialization;
-using DreamCine.Core.Enums;
-using DreamCine.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
