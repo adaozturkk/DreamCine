@@ -82,6 +82,7 @@ namespace DreamCine.Infrastructure.Repositories
             movie.ReleaseDate = movieModel.ReleaseDate;
             movie.MovieGenres = movieModel.MovieGenres;
             movie.StatusId = movieModel.StatusId;
+            movie.PosterPath = movieModel.PosterPath;
 
             await _context.SaveChangesAsync();
 

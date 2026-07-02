@@ -1,4 +1,6 @@
-﻿namespace DreamCine.Application.DTOs.Movie
+﻿using Microsoft.AspNetCore.Http;
+
+namespace DreamCine.Application.DTOs.Movie
 {
     public class UpdateMovieDto
     {
@@ -9,5 +11,6 @@
         public DateTime ReleaseDate { get; set; }
         public List<int> GenreIds { get; set; } = new List<int>();
         public int StatusId { get; set; }
+        public IFormFile? PosterImage { get; set; }
     }
 }

@@ -98,39 +98,48 @@ namespace DreamCine.Api.Controllers
 
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateMovieDto movieDto)
+        public async Task<IActionResult> Update([FromRoute] int id, [FromForm] UpdateMovieDto movieDto)
         {
             var validationResult = await _updateMovieValidator.ValidateAsync(movieDto);
-
             if (!validationResult.IsValid)
             {
                 return BadRequest(validationResult.Errors);
             }
 
             bool genresExist = await _genreRepo.DoGenresExistAsync(movieDto.GenreIds);
-
             if (!genresExist)
             {
                 return BadRequest("Genre types are not valid.");
             }
 
             bool statusExist = await _statusRepo.StatusExistsAsync(movieDto.StatusId);
-
             if (!statusExist)
             {
                 return BadRequest("Selected status does not exist.");
             }
 
-            var movieModel = movieDto.ToMovieFromUpdateDto();
-            movieModel.Id = id;
-
-            var movie = await _movieRepo.UpdateAsync(id, movieModel);
-
-            if (movie == null)
+            var existingMovie = await _movieRepo.GetByIdAsync(id);
+            if (existingMovie == null)
             {
                 return NotFound();
             }
 
+            var movieModel = movieDto.ToMovieFromUpdateDto();
+            movieModel.Id = id;
+            movieModel.PosterPath = existingMovie.PosterPath;
+
+            if (movieDto.PosterImage != null)
+            {
+                if (!string.IsNullOrEmpty(existingMovie.PosterPath))
+                {
+                    _fileService.DeleteFile(existingMovie.PosterPath);
+                }
+
+                var fileName = await _fileService.UploadFileAsync(movieDto.PosterImage, "images/posters");
+                movieModel.PosterPath = "images/posters/" + fileName;
+            }
+
+            await _movieRepo.UpdateAsync(id, movieModel);
             var updatedMovie = await _movieRepo.GetByIdAsync(id);
 
             return Ok(updatedMovie!.ToMovieDto());
@@ -145,6 +154,11 @@ namespace DreamCine.Api.Controllers
             if (movie == null)
             {
                 return NotFound();
+            }
+
+            if (!string.IsNullOrEmpty(movie.PosterPath))
+            {
+                _fileService.DeleteFile(movie.PosterPath);
             }
 
             return NoContent();
