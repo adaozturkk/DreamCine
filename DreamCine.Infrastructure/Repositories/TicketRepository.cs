@@ -16,12 +16,15 @@ namespace DreamCine.Infrastructure.Repositories
         public async Task<List<Ticket>> GetAllAsync(TicketQuery query)
         {
             var tickets = _context.Tickets
-                .Include(t => t.User)
                 .Include(t => t.Seat)
-                .Include(t => t.MovieSession)
-                    .ThenInclude(ms => ms.Movie)
-                .Include(t => t.MovieSession)
-                    .ThenInclude(ms => ms.Screen)
+                .Include(t => t.Reservation)
+                    .ThenInclude(r => r.User)
+                .Include(t => t.Reservation)
+                    .ThenInclude(r => r.MovieSession)
+                        .ThenInclude(ms => ms.Movie)
+                .Include(t => t.Reservation)
+                    .ThenInclude(r => r.MovieSession)
+                        .ThenInclude(ms => ms.Screen)
                 .AsQueryable();
             
             if (!string.IsNullOrWhiteSpace(query.Status))
@@ -38,18 +41,18 @@ namespace DreamCine.Infrastructure.Repositories
 
             if (query.MovieSessionId != null)
             {
-                tickets = tickets.Where(t => t.MovieSessionId == query.MovieSessionId);
+                tickets = tickets.Where(t => t.Reservation.MovieSessionId == query.MovieSessionId);
             }
 
             if (!string.IsNullOrWhiteSpace(query.UserEmail))
             {
-                tickets = tickets.Where(t => t.User.Email == query.UserEmail);
+                tickets = tickets.Where(t => t.Reservation.User.Email == query.UserEmail);
             }
 
             switch (query.SortBy?.ToLower())
             {
                 case "bookingtime":
-                    tickets = query.IsDescending ? tickets.OrderByDescending(x => x.BookingTime) : tickets.OrderBy(x => x.BookingTime);
+                    tickets = query.IsDescending ? tickets.OrderByDescending(x => x.Reservation.BookingTime) : tickets.OrderBy(x => x.Reservation.BookingTime);
                     break;
                 default:
                     tickets = query.IsDescending ? tickets.OrderByDescending(x => x.Id) : tickets.OrderBy(x => x.Id);
@@ -64,19 +67,22 @@ namespace DreamCine.Infrastructure.Repositories
         public override async Task<Ticket?> GetByIdAsync(int id)
         {
             return await _context.Tickets
-                .Include(t => t.User)
                 .Include(t => t.Seat)
-                .Include(t => t.MovieSession)
-                    .ThenInclude(ms => ms.Movie)
-                .Include(t => t.MovieSession)
-                    .ThenInclude(ms => ms.Screen)
+                .Include(t => t.Reservation)
+                    .ThenInclude(r => r.User)
+                .Include(t => t.Reservation)
+                    .ThenInclude(r => r.MovieSession)
+                        .ThenInclude(ms => ms.Movie)
+                .Include(t => t.Reservation)
+                    .ThenInclude(r => r.MovieSession)
+                        .ThenInclude(ms => ms.Screen)
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
         public async Task<bool> IsSeatTakenAsync(int movieSessionId, int seatId)
         {
             return await _context.Tickets.AnyAsync(t =>
-                t.MovieSessionId == movieSessionId &&
+                t.Reservation.MovieSessionId == movieSessionId &&
                 t.SeatId == seatId &&
                 t.Status != TicketStatus.Cancelled &&
                 t.Status != TicketStatus.Refunded);
@@ -85,13 +91,16 @@ namespace DreamCine.Infrastructure.Repositories
         public async Task<List<Ticket>> GetTicketsByUserIdAsync(string userId)
         {
             return await _context.Tickets
-                .Where(t => t.UserId == userId)
-                .Include(t => t.User)
                 .Include(t => t.Seat)
-                .Include(t => t.MovieSession)
-                    .ThenInclude(ms => ms.Movie)
-                .Include(t => t.MovieSession)
-                    .ThenInclude(ms => ms.Screen)
+                .Include(t => t.Reservation)
+                    .ThenInclude(r => r.User)
+                .Include(t => t.Reservation)
+                    .ThenInclude(r => r.MovieSession)
+                        .ThenInclude(ms => ms.Movie)
+                .Include(t => t.Reservation)
+                    .ThenInclude(r => r.MovieSession)
+                        .ThenInclude(ms => ms.Screen)
+                .Where(t => t.Reservation.UserId == userId)
                 .ToListAsync();
         }
     }

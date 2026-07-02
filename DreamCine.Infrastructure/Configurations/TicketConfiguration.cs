@@ -11,16 +11,18 @@ namespace DreamCine.Infrastructure.Configurations
             builder
                 .Property(t => t.PurchasePrice)
                 .HasPrecision(18, 2);
+
             builder
                 .HasOne(t => t.Seat)
                 .WithMany()
                 .HasForeignKey(t => t.SeatId)
                 .OnDelete(DeleteBehavior.Restrict);
+
             builder
-                .HasOne(t => t.MovieSession)
-                .WithMany()
-                .HasForeignKey(t => t.MovieSessionId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(t => t.Reservation)
+                .WithMany(x => x.Tickets)
+                .HasForeignKey(t => t.ReservationId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

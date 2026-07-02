@@ -78,7 +78,7 @@ namespace DreamCine.Api.Controllers
                 return BadRequest("Payment failed. Please check your card details or limit.");
             }
 
-            var ticketModel = createDto.ToTicketFromCreateDto(userId, currentPrice);
+            var ticketModel = createDto.ToTicketFromCreateDto(currentPrice);
             ticketModel.Status = TicketStatus.Paid;
 
             var createdTicket = await _ticketRepo.CreateAsync(ticketModel);
