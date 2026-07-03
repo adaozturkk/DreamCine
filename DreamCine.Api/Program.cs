@@ -115,6 +115,7 @@ builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IReservationJobService, ReservationJobService>();
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
