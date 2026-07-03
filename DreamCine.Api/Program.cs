@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using DreamCine.Core.Models;
 using System.Text.Json.Serialization;
+using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +57,14 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
         b => b.MigrationsAssembly("DreamCine.Infrastructure"));
 });
+
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHangfireServer();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 
@@ -123,6 +132,8 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<DreamCine.Api.Middlewares.GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
+
+app.UseHangfireDashboard();
 
 app.UseAuthentication();
 app.UseAuthorization();
