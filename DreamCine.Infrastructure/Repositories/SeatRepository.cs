@@ -50,5 +50,12 @@ namespace DreamCine.Infrastructure.Repositories
         {
             return await _context.Seats.AnyAsync(x => x.Id == id);
         }
+
+        public async Task<List<Seat>> GetSeatsByIdAsync(List<int> seatIds)
+        {
+            return await _context.Seats
+                .Where(s => seatIds.Contains(s.Id))
+                .ToListAsync();
+        }
     }
 }
