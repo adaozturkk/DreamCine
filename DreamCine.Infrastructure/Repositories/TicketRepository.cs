@@ -103,5 +103,17 @@ namespace DreamCine.Infrastructure.Repositories
                 .Where(t => t.Reservation.UserId == userId)
                 .ToListAsync();
         }
+
+        public async Task<List<int>> GetOccupiedSeatIdsAsync(int movieSessionId)
+        {
+            var occupiedSeatIds = await _context.Tickets
+                .Where(x => x.Reservation.MovieSessionId == movieSessionId &&
+                    x.Reservation.Status != ReservationStatus.Cancelled && 
+                    x.Reservation.Status != ReservationStatus.Refunded)
+                .Select(t => t.SeatId)
+                .ToListAsync();
+
+            return occupiedSeatIds;
+        }
     }
 }

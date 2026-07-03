@@ -8,5 +8,6 @@ namespace DreamCine.Core.Interfaces
         Task<bool> IsSeatTakenAsync(int movieSessionId, int seatId);
         Task<List<Ticket>> GetTicketsByUserIdAsync(string userId);
         Task<List<Ticket>> GetAllAsync(TicketQuery query);
+        Task<List<int>> GetOccupiedSeatIdsAsync(int movieSessionId);
     }
 }
