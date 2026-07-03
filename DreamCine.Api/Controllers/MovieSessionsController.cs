@@ -16,10 +16,11 @@ namespace DreamCine.Api.Controllers
         private readonly IMovieSessionRepository _sessionRepo;
         private readonly IMovieRepository _movieRepo;
         private readonly IScreenRepository _screenRepo;
+        private readonly ITicketRepository _ticketRepo;
         private readonly IValidator<CreateMovieSessionDto> _createSessionValidator;
         private readonly IValidator<UpdateMovieSessionDto> _updateSessionValidator;
 
-        public MovieSessionsController(IMovieSessionRepository sessionRepo, 
+        public MovieSessionsController(IMovieSessionRepository sessionRepo, ITicketRepository ticketRepo,
             IValidator<CreateMovieSessionDto> createSessionVlidator, IValidator<UpdateMovieSessionDto> updateSessionValidator,
             IMovieRepository movieRepo, IScreenRepository screenRepo)
         {
@@ -28,6 +29,7 @@ namespace DreamCine.Api.Controllers
             _updateSessionValidator = updateSessionValidator;
             _movieRepo = movieRepo;
             _screenRepo = screenRepo;
+            _ticketRepo = ticketRepo;
         }
 
         [HttpPost]
@@ -138,6 +140,26 @@ namespace DreamCine.Api.Controllers
             }
 
             return NoContent();
+        }
+
+        [HttpGet("{id:int}/seats")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetSessionSeats(int id)
+        {
+            var session = await _sessionRepo.GetByIdAsync(id);
+            if (session == null)
+            {
+                return NotFound();
+            }
+
+            var capacity = session.Screen.Capacity;
+            var occupiedSeats = await _ticketRepo.GetOccupiedSeatIdsAsync(session.Id);
+
+            return Ok(new SessionSeatsDto
+            {
+                Capacity = capacity,
+                OccupiedSeats = occupiedSeats
+            });
         }
     }
 }
