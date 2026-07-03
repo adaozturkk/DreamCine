@@ -1,7 +1,9 @@
 ﻿using DreamCine.Application.DTOs.Reservation;
+using DreamCine.Application.Interfaces;
 using DreamCine.Application.Mappers;
 using DreamCine.Core.Interfaces;
 using DreamCine.Core.Models;
+using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -17,14 +19,16 @@ namespace DreamCine.Api.Controllers
         public IMovieSessionRepository _sessionRepo;
         public ITicketRepository _ticketRepo;
         public ISeatRepository _seatRepo;
+        public IBackgroundJobClient _backgroundJobClient;
 
         public ReservationsController(IMovieSessionRepository sessionRepo, ITicketRepository ticketRepo, 
-            IReservationRepository reservationRepo, ISeatRepository seatRepo)
+            IReservationRepository reservationRepo, ISeatRepository seatRepo, IBackgroundJobClient backgroundJobClient)
         {
             _sessionRepo = sessionRepo;
             _ticketRepo = ticketRepo;
             _reservationRepo = reservationRepo;
             _seatRepo = seatRepo;
+            _backgroundJobClient = backgroundJobClient;
         }
 
         [HttpPost]
@@ -71,6 +75,11 @@ namespace DreamCine.Api.Controllers
             await _reservationRepo.CreateAsync(reservation);
 
             var bookedSeats = await _seatRepo.GetSeatsByIdAsync(reservationDto.SeatIds);
+
+            _backgroundJobClient.Schedule<IReservationJobService>(
+                job => job.CancelUnpaidReservationAsync(reservation.Id),
+                TimeSpan.FromMinutes(10)
+            );
 
             return Ok(reservation.ToReservationDto(session, bookedSeats));
         }
