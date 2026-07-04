@@ -100,5 +100,29 @@ namespace DreamCine.Api.Controllers
 
             return Ok(reservationDtos);
         }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetByIdAsync([FromRoute] int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User ID could not be found in the token.");
+            }
+
+            var reservation = await _reservationRepo.GetByIdAsync(id);
+            if (reservation == null)
+            {
+                return NotFound();
+            }
+
+            if (User.IsInRole("Admin") || reservation.UserId == userId)
+            {
+                var reservationDto = reservation.ToReservationDto(reservation.MovieSession, reservation.Tickets.Select(t => t.Seat).ToList());
+                return Ok(reservationDto);
+            }
+
+            return NotFound();
+        }
     }
 }
