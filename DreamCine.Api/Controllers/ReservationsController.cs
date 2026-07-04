@@ -86,7 +86,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpGet("my-reservations")]
-        public async Task<IActionResult> GetUserReservations()
+        public async Task<IActionResult> GetUserReservations([FromQuery] UserReservationQueryObject query)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
@@ -94,7 +94,7 @@ namespace DreamCine.Api.Controllers
                 return Unauthorized("User ID could not be found in the token.");
             }
 
-            var reservations = await _reservationRepo.GetReservationsByUserIdAsync(userId);
+            var reservations = await _reservationRepo.GetReservationsByUserIdAsync(userId, query);
             var reservationDtos = reservations.Select(r => r.ToReservationDto(
                 r.MovieSession, 
                 r.Tickets.Select(t => t.Seat).ToList())
