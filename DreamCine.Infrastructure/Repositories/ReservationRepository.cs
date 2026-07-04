@@ -17,5 +17,18 @@ namespace DreamCine.Infrastructure.Repositories
                 .Include(r => r.Tickets)
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
+
+        public async Task<List<Reservation>> GetReservationsByUserIdAsync(string userId)
+        {
+            return await _context.Reservations
+                .Include(r => r.Tickets)
+                    .ThenInclude(t => t.Seat)
+                .Include(r => r.MovieSession)
+                    .ThenInclude(ms => ms.Screen)
+                .Include(r => r.MovieSession)
+                    .ThenInclude(ms => ms.Movie)
+                .Where(r => r.UserId == userId)
+                .ToListAsync();
+        }
     }
 }

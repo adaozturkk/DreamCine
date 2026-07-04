@@ -83,5 +83,22 @@ namespace DreamCine.Api.Controllers
 
             return Ok(reservation.ToReservationDto(session, bookedSeats));
         }
+
+        [HttpGet("my-reservations")]
+        public async Task<IActionResult> GetUserReservations()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User ID could not be found in the token.");
+            }
+
+            var reservations = await _reservationRepo.GetReservationsByUserIdAsync(userId);
+            var reservationDtos = reservations.Select(r => r.ToReservationDto(
+                r.MovieSession, 
+                r.Tickets.Select(t => t.Seat).ToList()));
+
+            return Ok(reservationDtos);
+        }
     }
 }
