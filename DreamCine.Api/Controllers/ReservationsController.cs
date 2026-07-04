@@ -1,6 +1,7 @@
 ﻿using DreamCine.Application.DTOs.Reservation;
 using DreamCine.Application.Interfaces;
 using DreamCine.Application.Mappers;
+using DreamCine.Core.Helpers;
 using DreamCine.Core.Interfaces;
 using DreamCine.Core.Models;
 using Hangfire;
@@ -96,7 +97,21 @@ namespace DreamCine.Api.Controllers
             var reservations = await _reservationRepo.GetReservationsByUserIdAsync(userId);
             var reservationDtos = reservations.Select(r => r.ToReservationDto(
                 r.MovieSession, 
-                r.Tickets.Select(t => t.Seat).ToList()));
+                r.Tickets.Select(t => t.Seat).ToList())
+            );
+
+            return Ok(reservationDtos);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAll([FromQuery] ReservationQueryObject query)
+        {
+            var reservation = await _reservationRepo.GetAllWithFilteringAsync(query);
+            var reservationDtos = reservation.Select(r => r.ToReservationDto(
+                r.MovieSession, 
+                r.Tickets.Select(t => t.Seat).ToList())
+            );
 
             return Ok(reservationDtos);
         }
