@@ -124,5 +124,40 @@ namespace DreamCine.Api.Controllers
 
             return NotFound();
         }
+
+        [HttpPatch("{id:int}/cancel")]
+        public async Task<IActionResult> Cancel([FromRoute] int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User ID could not be found in the token.");
+            }
+
+            var reservation = await _reservationRepo.GetByIdAsync(id);
+            if (reservation == null)
+            {
+                return NotFound();
+            }
+
+            if (!User.IsInRole("Admin") && reservation.UserId != userId)
+            {
+                return NotFound();
+            }
+
+            if (reservation.Status != Core.Enums.ReservationStatus.Pending)
+            {
+                return BadRequest("Only pending reservations can be cancelled.");
+            }
+
+            reservation.Status = Core.Enums.ReservationStatus.Cancelled;
+            foreach (var ticket in reservation.Tickets)
+            {
+                ticket.Status = Core.Enums.TicketStatus.Cancelled;
+            }
+            await _reservationRepo.UpdateAsync(id, reservation);
+
+            return Ok("Reservation cancelled successfully.");
+        }
     }
 }
