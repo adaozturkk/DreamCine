@@ -112,21 +112,30 @@ namespace DreamCine.Api.Controllers
             return Ok(ticketDtos);
         }
 
-        [HttpPut("{id:int}/status")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateStatus([FromRoute] int id, [FromBody] UpdateTicketStatusDto updateDto)
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetByIdAsync([FromRoute] int id)
         {
-            var ticket = await _ticketRepo.GetByIdAsync(id);
-
-            if (ticket == null)
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
             {
-                return NotFound("Ticket does not exist.");
+                return Unauthorized("User ID could not be found in the token.");
             }
 
-            ticket.Status = updateDto.Status;
-            var updatedTicket = await _ticketRepo.UpdateAsync(id, ticket);
+            var ticket = await _ticketRepo.GetByIdAsync(id);
+            if (ticket == null)
+            {
+                return NotFound();
+            }
 
-            return Ok(updatedTicket?.ToTicketDto());
+            if (User.IsInRole("Admin") || ticket.Reservation.UserId == userId)
+            {
+                var ticketDto = ticket.ToTicketDto();
+                return Ok(ticketDto);
+            }
+
+            return NotFound();
         }
+
+        // add cancel tickets later
     }
 }

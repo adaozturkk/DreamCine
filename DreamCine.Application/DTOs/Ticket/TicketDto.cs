@@ -10,6 +10,7 @@
         public int SeatId { get; set; }
         public int ScreenNumber { get; set; }
         public string? SeatNumber { get; set; }
+        public int ReservationId { get; set; }
         public DateTime BookingTime { get; set; }
         public decimal PurchasePrice { get; set; }
         public string? Status { get; set; }

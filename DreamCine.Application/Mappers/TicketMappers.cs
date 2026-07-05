@@ -27,6 +27,7 @@ namespace DreamCine.Application.Mappers
                 SessionTime = ticketModel.Reservation?.MovieSession?.SessionTime ?? DateTime.MinValue,
                 SeatId = ticketModel.SeatId,
                 ScreenNumber = ticketModel.Reservation?.MovieSession?.Screen?.ScreenNumber ?? 0,
+                ReservationId = ticketModel.ReservationId,
                 SeatNumber = ticketModel.Seat?.SeatNumber ?? ticketModel.SeatId.ToString(),
                 BookingTime = (DateTime)(ticketModel.Reservation?.BookingTime),
                 PurchasePrice = ticketModel.PurchasePrice,
