@@ -4,6 +4,7 @@ using DreamCine.Application.Mappers;
 using DreamCine.Core.Helpers;
 using DreamCine.Core.Interfaces;
 using DreamCine.Core.Models;
+using FluentValidation;
 using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,20 +22,29 @@ namespace DreamCine.Api.Controllers
         public ITicketRepository _ticketRepo;
         public ISeatRepository _seatRepo;
         public IBackgroundJobClient _backgroundJobClient;
+        public IValidator<CreateReservationDto> _createReservationValidator;
 
         public ReservationsController(IMovieSessionRepository sessionRepo, ITicketRepository ticketRepo, 
-            IReservationRepository reservationRepo, ISeatRepository seatRepo, IBackgroundJobClient backgroundJobClient)
+            IReservationRepository reservationRepo, ISeatRepository seatRepo, IBackgroundJobClient backgroundJobClient,
+            IValidator<CreateReservationDto> createReservationValidator)
         {
             _sessionRepo = sessionRepo;
             _ticketRepo = ticketRepo;
             _reservationRepo = reservationRepo;
             _seatRepo = seatRepo;
             _backgroundJobClient = backgroundJobClient;
+            _createReservationValidator = createReservationValidator;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateReservation([FromBody] CreateReservationDto reservationDto)
         {
+            var validationResult = await _createReservationValidator.ValidateAsync(reservationDto);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
             {
@@ -45,6 +55,12 @@ namespace DreamCine.Api.Controllers
             if (session == null)
             {
                 return NotFound("Session id not found.");
+            }
+
+            var bookedSeats = await _seatRepo.GetSeatsByIdAsync(reservationDto.SeatIds);
+            if (reservationDto.SeatIds.Count() != bookedSeats.Count())
+            {
+                return BadRequest("One or more selected seats do not exist in the system.");
             }
 
             var occupiedSeats = await _ticketRepo.GetOccupiedSeatIdsAsync(session.Id);
@@ -74,8 +90,6 @@ namespace DreamCine.Api.Controllers
 
             reservation.TotalPrice = reservation.Tickets.Sum(x => x.PurchasePrice);
             await _reservationRepo.CreateAsync(reservation);
-
-            var bookedSeats = await _seatRepo.GetSeatsByIdAsync(reservationDto.SeatIds);
 
             _backgroundJobClient.Schedule<IReservationJobService>(
                 job => job.CancelUnpaidReservationAsync(reservation.Id),
