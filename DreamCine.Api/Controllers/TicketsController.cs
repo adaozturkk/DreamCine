@@ -88,7 +88,7 @@ namespace DreamCine.Api.Controllers
         }
 
         [HttpGet("my-tickets")]
-        public async Task<IActionResult> GetUserTickets()
+        public async Task<IActionResult> GetUserTickets([FromQuery] UserTicketQuery query)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
@@ -96,7 +96,7 @@ namespace DreamCine.Api.Controllers
                 return Unauthorized("User ID could not be found in the token.");
             }
 
-            var tickets = await _ticketRepo.GetTicketsByUserIdAsync(userId);
+            var tickets = await _ticketRepo.GetTicketsByUserIdAsync(userId, query);
             var ticketDtos = tickets.Select(t => t.ToTicketDto());
 
             return Ok(ticketDtos);

@@ -27,21 +27,19 @@ namespace DreamCine.Infrastructure.Repositories
                         .ThenInclude(ms => ms.Screen)
                 .AsQueryable();
             
-            if (!string.IsNullOrWhiteSpace(query.Status))
+            if (query.Status.HasValue)
             {
-                if (Enum.TryParse<TicketStatus>(query.Status, true, out var parsedStatus))
-                {
-                    tickets = tickets.Where(t => t.Status == parsedStatus);
-                }
-                else
-                {
-                    tickets = tickets.Where(t => false);
-                }
+                tickets = tickets.Where(t => t.Status == query.Status.Value);
             }
 
-            if (query.MovieSessionId != null)
+            if (query.MovieSessionId.HasValue)
             {
                 tickets = tickets.Where(t => t.Reservation.MovieSessionId == query.MovieSessionId);
+            }
+
+            if (query.ReservationId.HasValue)
+            {
+                tickets = tickets.Where(t => t.ReservationId == query.ReservationId);
             }
 
             if (!string.IsNullOrWhiteSpace(query.UserEmail))
@@ -53,6 +51,9 @@ namespace DreamCine.Infrastructure.Repositories
             {
                 case "bookingtime":
                     tickets = query.IsDescending ? tickets.OrderByDescending(x => x.Reservation.BookingTime) : tickets.OrderBy(x => x.Reservation.BookingTime);
+                    break;
+                case "purchaseprice":
+                    tickets = query.IsDescending ? tickets.OrderByDescending(x => x.PurchasePrice) : tickets.OrderBy(x => x.PurchasePrice);
                     break;
                 default:
                     tickets = query.IsDescending ? tickets.OrderByDescending(x => x.Id) : tickets.OrderBy(x => x.Id);
@@ -88,9 +89,9 @@ namespace DreamCine.Infrastructure.Repositories
                 t.Status != TicketStatus.Refunded);
         }
 
-        public async Task<List<Ticket>> GetTicketsByUserIdAsync(string userId)
+        public async Task<List<Ticket>> GetTicketsByUserIdAsync(string userId, UserTicketQuery query)
         {
-            return await _context.Tickets
+            var tickets = _context.Tickets
                 .Include(t => t.Seat)
                 .Include(t => t.Reservation)
                     .ThenInclude(r => r.User)
@@ -101,7 +102,39 @@ namespace DreamCine.Infrastructure.Repositories
                     .ThenInclude(r => r.MovieSession)
                         .ThenInclude(ms => ms.Screen)
                 .Where(t => t.Reservation.UserId == userId)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (query.Status.HasValue)
+            {
+                tickets = tickets.Where(t => t.Status == query.Status.Value);
+            }
+
+            if (query.MovieSessionId.HasValue)
+            {
+                tickets = tickets.Where(t => t.Reservation.MovieSessionId == query.MovieSessionId);
+            }
+
+            if (query.ReservationId.HasValue)
+            {
+                tickets = tickets.Where(t => t.ReservationId == query.ReservationId);
+            }
+
+            switch (query.SortBy?.ToLower())
+            {
+                case "bookingtime":
+                    tickets = query.IsDescending ? tickets.OrderByDescending(x => x.Reservation.BookingTime) : tickets.OrderBy(x => x.Reservation.BookingTime);
+                    break;
+                case "purchaseprice":
+                    tickets = query.IsDescending ? tickets.OrderByDescending(x => x.PurchasePrice) : tickets.OrderBy(x => x.PurchasePrice);
+                    break;
+                default:
+                    tickets = query.IsDescending ? tickets.OrderByDescending(x => x.Id) : tickets.OrderBy(x => x.Id);
+                    break;
+            }
+
+            var skipNumber = (query.PageNumber - 1) * query.PageSize;
+
+            return await tickets.Skip(skipNumber).Take(query.PageSize).ToListAsync();
         }
 
         public async Task<List<int>> GetOccupiedSeatIdsAsync(int movieSessionId)

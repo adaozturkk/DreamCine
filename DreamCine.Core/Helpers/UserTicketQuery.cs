@@ -2,9 +2,8 @@
 
 namespace DreamCine.Core.Helpers
 {
-    public class TicketQuery : BaseQueryObject
+    public class UserTicketQuery : BaseQueryObject
     {
-        public string? UserEmail { get; set; } = null;
         public int? MovieSessionId { get; set; } = null;
         public int? ReservationId { get; set; } = null;
         public TicketStatus? Status { get; set; }
