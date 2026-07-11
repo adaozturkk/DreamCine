@@ -14,13 +14,7 @@ namespace DreamCine.Infrastructure.Repositories
 
         public async Task<List<Reservation>> GetReservationsByUserIdAsync(string userId, UserReservationQueryObject query)
         {
-            var reservations = _context.Reservations
-                .Include(r => r.Tickets)
-                    .ThenInclude(t => t.Seat)
-                .Include(r => r.MovieSession)
-                    .ThenInclude(ms => ms.Screen)
-                .Include(r => r.MovieSession)
-                    .ThenInclude(ms => ms.Movie)
+            var reservations = GetReservationsWithIncludesQuery()
                 .Where(r => r.UserId == userId)
                 .AsQueryable();
 
@@ -54,26 +48,12 @@ namespace DreamCine.Infrastructure.Repositories
 
         public override async Task<Reservation?> GetByIdAsync(int id)
         {
-            return await _context.Reservations
-                .Include(r => r.Tickets)
-                    .ThenInclude(t => t.Seat)
-                .Include(r => r.MovieSession)
-                    .ThenInclude(ms => ms.Screen)
-                .Include(r => r.MovieSession)
-                    .ThenInclude(ms => ms.Movie)
-                .FirstOrDefaultAsync(t => t.Id == id);
+            return await GetReservationsWithIncludesQuery().FirstOrDefaultAsync(t => t.Id == id);
         }
 
         public async Task<List<Reservation>> GetAllWithFilteringAsync(ReservationQueryObject query)
         {
-            var reservations = _context.Reservations
-                .Include(r => r.Tickets)
-                    .ThenInclude(t => t.Seat)
-                .Include(r => r.MovieSession)
-                    .ThenInclude(ms => ms.Screen)
-                .Include(r => r.MovieSession)
-                    .ThenInclude(ms => ms.Movie)
-                .AsQueryable();
+            var reservations = GetReservationsWithIncludesQuery().AsQueryable();
 
             if (query.Status.HasValue)
             {
@@ -106,6 +86,17 @@ namespace DreamCine.Infrastructure.Repositories
             var skipNumber = (query.PageNumber - 1) * query.PageSize;
 
             return await reservations.Skip(skipNumber).Take(query.PageSize).ToListAsync();
+        }
+
+        private IQueryable<Reservation> GetReservationsWithIncludesQuery()
+        {
+            return _context.Reservations
+                .Include(r => r.Tickets)
+                    .ThenInclude(t => t.Seat)
+                .Include(r => r.MovieSession)
+                    .ThenInclude(ms => ms.Screen)
+                .Include(r => r.MovieSession)
+                    .ThenInclude(ms => ms.Movie);
         }
     }
 }

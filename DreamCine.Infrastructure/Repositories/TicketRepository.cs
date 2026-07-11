@@ -15,17 +15,7 @@ namespace DreamCine.Infrastructure.Repositories
 
         public async Task<List<Ticket>> GetAllAsync(TicketQuery query)
         {
-            var tickets = _context.Tickets
-                .Include(t => t.Seat)
-                .Include(t => t.Reservation)
-                    .ThenInclude(r => r.User)
-                .Include(t => t.Reservation)
-                    .ThenInclude(r => r.MovieSession)
-                        .ThenInclude(ms => ms.Movie)
-                .Include(t => t.Reservation)
-                    .ThenInclude(r => r.MovieSession)
-                        .ThenInclude(ms => ms.Screen)
-                .AsQueryable();
+            var tickets = GetTicketsWithIncludesQuery().AsQueryable();
 
             if (query.Status.HasValue)
             {
@@ -67,17 +57,7 @@ namespace DreamCine.Infrastructure.Repositories
 
         public override async Task<Ticket?> GetByIdAsync(int id)
         {
-            return await _context.Tickets
-                .Include(t => t.Seat)
-                .Include(t => t.Reservation)
-                    .ThenInclude(r => r.User)
-                .Include(t => t.Reservation)
-                    .ThenInclude(r => r.MovieSession)
-                        .ThenInclude(ms => ms.Movie)
-                .Include(t => t.Reservation)
-                    .ThenInclude(r => r.MovieSession)
-                        .ThenInclude(ms => ms.Screen)
-                .FirstOrDefaultAsync(t => t.Id == id);
+            return await GetTicketsWithIncludesQuery().FirstOrDefaultAsync(t => t.Id == id);
         }
 
         public async Task<bool> IsSeatTakenAsync(int movieSessionId, int seatId)
@@ -91,16 +71,7 @@ namespace DreamCine.Infrastructure.Repositories
 
         public async Task<List<Ticket>> GetTicketsByUserIdAsync(string userId, UserTicketQuery query)
         {
-            var tickets = _context.Tickets
-                .Include(t => t.Seat)
-                .Include(t => t.Reservation)
-                    .ThenInclude(r => r.User)
-                .Include(t => t.Reservation)
-                    .ThenInclude(r => r.MovieSession)
-                        .ThenInclude(ms => ms.Movie)
-                .Include(t => t.Reservation)
-                    .ThenInclude(r => r.MovieSession)
-                        .ThenInclude(ms => ms.Screen)
+            var tickets = GetTicketsWithIncludesQuery()
                 .Where(t => t.Reservation.UserId == userId)
                 .AsQueryable();
 
@@ -148,5 +119,20 @@ namespace DreamCine.Infrastructure.Repositories
 
             return occupiedSeatIds;
         }
+
+        private IQueryable<Ticket> GetTicketsWithIncludesQuery()
+        {
+            return _context.Tickets
+                .Include(t => t.Seat)
+                .Include(t => t.Reservation)
+                    .ThenInclude(r => r.User)
+                .Include(t => t.Reservation)
+                    .ThenInclude(r => r.MovieSession)
+                        .ThenInclude(ms => ms.Movie)
+                .Include(t => t.Reservation)
+                    .ThenInclude(r => r.MovieSession)
+                        .ThenInclude(ms => ms.Screen);
+        }
+
     }
 }
