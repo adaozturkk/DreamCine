@@ -7,11 +7,14 @@ namespace DreamCine.Api.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionMiddleware> _logger;
+        private readonly IHostEnvironment _env;
 
-        public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
+        public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger,
+            IHostEnvironment env)
         {
             _next = next;
             _logger = logger;
+            _env = env;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -31,7 +34,7 @@ namespace DreamCine.Api.Middlewares
                 {
                     StatusCode = context.Response.StatusCode,
                     Message = "An unexpected error occurred on the server side. Please try again later.",
-                    Detailed = ex.Message // for satefy delete this before publish!!!
+                    Detailed = _env.IsDevelopment() ? ex.Message : null
                 };
 
                 var jsonResponse = JsonSerializer.Serialize(response);

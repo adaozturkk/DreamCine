@@ -1,8 +1,8 @@
-﻿using DreamCine.Infrastructure.Data;
-using DreamCine.Core.Enums;
+﻿using DreamCine.Core.Enums;
 using DreamCine.Core.Helpers;
 using DreamCine.Core.Interfaces;
 using DreamCine.Core.Models;
+using DreamCine.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace DreamCine.Infrastructure.Repositories
@@ -26,7 +26,7 @@ namespace DreamCine.Infrastructure.Repositories
                     .ThenInclude(r => r.MovieSession)
                         .ThenInclude(ms => ms.Screen)
                 .AsQueryable();
-            
+
             if (query.Status.HasValue)
             {
                 tickets = tickets.Where(t => t.Status == query.Status.Value);
@@ -141,7 +141,7 @@ namespace DreamCine.Infrastructure.Repositories
         {
             var occupiedSeatIds = await _context.Tickets
                 .Where(x => x.Reservation.MovieSessionId == movieSessionId &&
-                    x.Reservation.Status != ReservationStatus.Cancelled && 
+                    x.Reservation.Status != ReservationStatus.Cancelled &&
                     x.Reservation.Status != ReservationStatus.Refunded)
                 .Select(t => t.SeatId)
                 .ToListAsync();
