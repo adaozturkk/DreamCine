@@ -1,4 +1,5 @@
-﻿using DreamCine.Application.DTOs.Reservation;
+﻿using System.Security.Claims;
+using DreamCine.Application.DTOs.Reservation;
 using DreamCine.Application.Interfaces;
 using DreamCine.Application.Mappers;
 using DreamCine.Core.Helpers;
@@ -8,7 +9,6 @@ using FluentValidation;
 using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace DreamCine.Api.Controllers
 {
@@ -24,7 +24,7 @@ namespace DreamCine.Api.Controllers
         public IBackgroundJobClient _backgroundJobClient;
         public IValidator<CreateReservationDto> _createReservationValidator;
 
-        public ReservationsController(IMovieSessionRepository sessionRepo, ITicketRepository ticketRepo, 
+        public ReservationsController(IMovieSessionRepository sessionRepo, ITicketRepository ticketRepo,
             IReservationRepository reservationRepo, ISeatRepository seatRepo, IBackgroundJobClient backgroundJobClient,
             IValidator<CreateReservationDto> createReservationValidator)
         {
@@ -77,14 +77,16 @@ namespace DreamCine.Api.Controllers
                 Status = Core.Enums.ReservationStatus.Pending,
                 Tickets = new List<Ticket>()
             };
-            
-            foreach(var seatId in reservationDto.SeatIds)
+
+            foreach (var seatId in reservationDto.SeatIds)
             {
                 reservation.Tickets.Add(new Ticket
                 {
                     SeatId = seatId,
                     PurchasePrice = session.Price,
-                    Status = Core.Enums.TicketStatus.Pending
+                    Status = Core.Enums.TicketStatus.Pending,
+                    MovieSessionId = session.Id
+
                 });
             }
 
@@ -110,7 +112,7 @@ namespace DreamCine.Api.Controllers
 
             var reservations = await _reservationRepo.GetReservationsByUserIdAsync(userId, query);
             var reservationDtos = reservations.Select(r => r.ToReservationDto(
-                r.MovieSession, 
+                r.MovieSession,
                 r.Tickets.Select(t => t.Seat).ToList())
             );
 
@@ -123,7 +125,7 @@ namespace DreamCine.Api.Controllers
         {
             var reservation = await _reservationRepo.GetAllWithFilteringAsync(query);
             var reservationDtos = reservation.Select(r => r.ToReservationDto(
-                r.MovieSession, 
+                r.MovieSession,
                 r.Tickets.Select(t => t.Seat).ToList())
             );
 

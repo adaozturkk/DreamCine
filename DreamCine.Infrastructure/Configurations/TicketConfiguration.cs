@@ -23,6 +23,17 @@ namespace DreamCine.Infrastructure.Configurations
                 .WithMany(x => x.Tickets)
                 .HasForeignKey(t => t.ReservationId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder
+                .HasOne(t => t.MovieSession)
+                .WithMany()
+                .HasForeignKey(t => t.MovieSessionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder
+                .HasIndex(t => new { t.MovieSessionId, t.SeatId })
+                .IsUnique()
+                .HasFilter("[Status] IN (1, 2)");
         }
     }
 }

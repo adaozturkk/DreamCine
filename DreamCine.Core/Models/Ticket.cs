@@ -7,6 +7,8 @@ namespace DreamCine.Core.Models
         public int Id { get; set; }
         public int ReservationId { get; set; }
         public Reservation Reservation { get; set; } = null!;
+        public int MovieSessionId { get; set; }
+        public MovieSession MovieSession { get; set; } = null!;
         public int SeatId { get; set; }
         public Seat Seat { get; set; } = null!;
         public decimal PurchasePrice { get; set; }

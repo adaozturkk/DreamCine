@@ -1,6 +1,6 @@
 ﻿using DreamCine.Application.DTOs.Ticket;
-using DreamCine.Core.Models;
 using DreamCine.Core.Enums;
+using DreamCine.Core.Models;
 
 namespace DreamCine.Application.Mappers
 {
@@ -12,7 +12,8 @@ namespace DreamCine.Application.Mappers
             {
                 SeatId = createDto.SeatId,
                 PurchasePrice = currentPrice,
-                Status = TicketStatus.Pending
+                Status = TicketStatus.Pending,
+                MovieSessionId = createDto.MovieSessionId
             };
         }
 
@@ -22,7 +23,7 @@ namespace DreamCine.Application.Mappers
             {
                 Id = ticketModel.Id,
                 UserEmail = ticketModel.Reservation?.User?.Email,
-                MovieSessionId = (int)(ticketModel.Reservation?.MovieSessionId),
+                MovieSessionId = ticketModel.MovieSessionId,
                 MovieTitle = ticketModel.Reservation?.MovieSession?.Movie?.Title,
                 SessionTime = ticketModel.Reservation?.MovieSession?.SessionTime ?? DateTime.MinValue,
                 SeatId = ticketModel.SeatId,
