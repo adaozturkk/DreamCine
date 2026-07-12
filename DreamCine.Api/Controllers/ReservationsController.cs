@@ -86,7 +86,6 @@ namespace DreamCine.Api.Controllers
                     PurchasePrice = session.Price,
                     Status = Core.Enums.TicketStatus.Pending,
                     MovieSessionId = session.Id
-
                 });
             }
 
