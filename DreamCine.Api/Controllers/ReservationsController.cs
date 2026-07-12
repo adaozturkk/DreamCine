@@ -18,22 +18,15 @@ namespace DreamCine.Api.Controllers
     public class ReservationsController : ControllerBase
     {
         public IReservationRepository _reservationRepo;
-        public IMovieSessionRepository _sessionRepo;
-        public ITicketRepository _ticketRepo;
-        public ISeatRepository _seatRepo;
-        public IBackgroundJobClient _backgroundJobClient;
         public IValidator<CreateReservationDto> _createReservationValidator;
+        public IReservationService _reservationService;
 
-        public ReservationsController(IMovieSessionRepository sessionRepo, ITicketRepository ticketRepo,
-            IReservationRepository reservationRepo, ISeatRepository seatRepo, IBackgroundJobClient backgroundJobClient,
+        public ReservationsController(IReservationRepository reservationRepo, IReservationService reservationService,
             IValidator<CreateReservationDto> createReservationValidator)
         {
-            _sessionRepo = sessionRepo;
-            _ticketRepo = ticketRepo;
             _reservationRepo = reservationRepo;
-            _seatRepo = seatRepo;
-            _backgroundJobClient = backgroundJobClient;
             _createReservationValidator = createReservationValidator;
+            _reservationService = reservationService;
         }
 
         [HttpPost]
@@ -51,53 +44,15 @@ namespace DreamCine.Api.Controllers
                 return Unauthorized("User ID could not be found in the token.");
             }
 
-            var session = await _sessionRepo.GetByIdAsync(reservationDto.MovieSessionId);
-            if (session == null)
+            var result = await _reservationService.CreateReservationAsync(reservationDto, userId);
+            if (!result.IsSuccess)
             {
-                return NotFound("Session id not found.");
+                return StatusCode(result.StatusCode, result.ErrorMessage);
             }
-
-            var bookedSeats = await _seatRepo.GetSeatsByIdAsync(reservationDto.SeatIds);
-            if (reservationDto.SeatIds.Count() != bookedSeats.Count())
+            else
             {
-                return BadRequest("One or more selected seats do not exist in the system.");
+                return StatusCode(result.StatusCode, result.Data);
             }
-
-            var occupiedSeats = await _ticketRepo.GetOccupiedSeatIdsAsync(session.Id);
-            if (reservationDto.SeatIds.Any(seatId => occupiedSeats.Contains(seatId)))
-            {
-                return BadRequest("Selected seats have already reserved.");
-            }
-
-            var reservation = new Reservation
-            {
-                UserId = userId,
-                MovieSessionId = session.Id,
-                BookingTime = DateTime.UtcNow,
-                Status = Core.Enums.ReservationStatus.Pending,
-                Tickets = new List<Ticket>()
-            };
-
-            foreach (var seatId in reservationDto.SeatIds)
-            {
-                reservation.Tickets.Add(new Ticket
-                {
-                    SeatId = seatId,
-                    PurchasePrice = session.Price,
-                    Status = Core.Enums.TicketStatus.Pending,
-                    MovieSessionId = session.Id
-                });
-            }
-
-            reservation.TotalPrice = reservation.Tickets.Sum(x => x.PurchasePrice);
-            await _reservationRepo.CreateAsync(reservation);
-
-            _backgroundJobClient.Schedule<IReservationJobService>(
-                job => job.CancelUnpaidReservationAsync(reservation.Id),
-                TimeSpan.FromMinutes(10)
-            );
-
-            return Ok(reservation.ToReservationDto(session, bookedSeats));
         }
 
         [HttpGet("my-reservations")]

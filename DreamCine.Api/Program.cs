@@ -1,16 +1,17 @@
-using DreamCine.Infrastructure.Data;
-using DreamCine.Core.Interfaces;
-using DreamCine.Application.Interfaces;
-using DreamCine.Infrastructure.Repositories;
-using Microsoft.EntityFrameworkCore;
-using FluentValidation;
-using Microsoft.AspNetCore.Identity;
-using DreamCine.Infrastructure.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using DreamCine.Core.Models;
 using System.Text.Json.Serialization;
+using DreamCine.Application.Interfaces;
+using DreamCine.Application.Services;
+using DreamCine.Core.Interfaces;
+using DreamCine.Core.Models;
+using DreamCine.Infrastructure.Data;
+using DreamCine.Infrastructure.Repositories;
+using DreamCine.Infrastructure.Services;
+using FluentValidation;
 using Hangfire;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -116,6 +117,8 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IReservationJobService, ReservationJobService>();
+builder.Services.AddScoped<IJobScheduler, HangfireJobScheduler>();
+builder.Services.AddScoped<IReservationService, ReservationService>();
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
