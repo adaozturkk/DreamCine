@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace DreamCine.Api.Middlewares
 {
@@ -25,15 +26,24 @@ namespace DreamCine.Api.Middlewares
             }
             catch (Exception ex)
             {
+                int statusCode = (int)HttpStatusCode.InternalServerError;
+                string message = "An unexpected error occurred on the server side. Please try again later.";
+
+                if (ex is DbUpdateException && ex.InnerException?.Message.Contains("IX_Tickets_MovieSessionId_SeatId") == true)
+                {
+                    statusCode = (int)HttpStatusCode.BadRequest;
+                    message = "This seat already reserved for selected session. Please select another seat.";
+                }
+
                 _logger.LogError(ex, "An uncaught error occurred in the system!");
 
                 context.Response.ContentType = "application/json";
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.StatusCode = statusCode;
 
                 var response = new
                 {
-                    StatusCode = context.Response.StatusCode,
-                    Message = "An unexpected error occurred on the server side. Please try again later.",
+                    StatusCode = statusCode,
+                    Message = message,
                     Detailed = _env.IsDevelopment() ? ex.Message : null
                 };
 
