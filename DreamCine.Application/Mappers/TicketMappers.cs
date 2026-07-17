@@ -1,22 +1,10 @@
 ﻿using DreamCine.Application.DTOs.Ticket;
-using DreamCine.Core.Enums;
 using DreamCine.Core.Models;
 
 namespace DreamCine.Application.Mappers
 {
     public static class TicketMappers
     {
-        public static Ticket ToTicketFromCreateDto(this CreateTicketDto createDto, decimal currentPrice)
-        {
-            return new Ticket
-            {
-                SeatId = createDto.SeatId,
-                PurchasePrice = currentPrice,
-                Status = TicketStatus.Pending,
-                MovieSessionId = createDto.MovieSessionId
-            };
-        }
-
         public static TicketDto ToTicketDto(this Ticket ticketModel)
         {
             return new TicketDto
