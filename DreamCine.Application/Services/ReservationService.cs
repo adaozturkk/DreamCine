@@ -2,6 +2,7 @@
 using DreamCine.Application.DTOs.Reservation;
 using DreamCine.Application.Interfaces;
 using DreamCine.Application.Mappers;
+using DreamCine.Core.Helpers;
 using DreamCine.Core.Interfaces;
 using DreamCine.Core.Models;
 
@@ -23,6 +24,34 @@ namespace DreamCine.Application.Services
             _ticketRepo = ticketRepo;
             _seatRepo = seatRepo;
             _jobScheduler = jobScheduler;
+        }
+
+        public async Task<ServiceResult<string>> CancelReservationAsync(int id, string userId, bool isAdmin)
+        {
+            var reservation = await _reservationRepo.GetByIdAsync(id);
+            if (reservation == null)
+            {
+                return ServiceResult<string>.Failure("Reservation not found.", 404);
+            }
+
+            if (!isAdmin && reservation.UserId != userId)
+            {
+                return ServiceResult<string>.Failure("Reservation not found.", 404);
+            }
+
+            if (reservation.Status != Core.Enums.ReservationStatus.Pending)
+            {
+                return ServiceResult<string>.Failure("Only pending reservations can be cancelled.", 400);
+            }
+
+            reservation.Status = Core.Enums.ReservationStatus.Cancelled;
+            foreach (var ticket in reservation.Tickets)
+            {
+                ticket.Status = Core.Enums.TicketStatus.Cancelled;
+            }
+            await _reservationRepo.UpdateAsync(id, reservation);
+
+            return ServiceResult<string>.Success("Reservation cancelled successfully.", 200);
         }
 
         public async Task<ServiceResult<ReservationDto>> CreateReservationAsync(CreateReservationDto dto, string userId)
@@ -72,6 +101,45 @@ namespace DreamCine.Application.Services
 
             var reservationDto = reservation.ToReservationDto(session, bookedSeats);
             return ServiceResult<ReservationDto>.Success(reservationDto, 200);
+        }
+
+        public async Task<ServiceResult<List<ReservationDto>>> GetAllWithFilteringAsync(ReservationQueryObject query)
+        {
+            var reservation = await _reservationRepo.GetAllWithFilteringAsync(query);
+            var reservationDtos = reservation.Select(r => r.ToReservationDto(
+                r.MovieSession,
+                r.Tickets.Select(t => t.Seat).ToList())
+            ).ToList();
+
+            return ServiceResult<List<ReservationDto>>.Success(reservationDtos, 200);
+        }
+
+        public async Task<ServiceResult<ReservationDto>> GetByIdAsync(int id, string userId, bool isAdmin)
+        {
+            var reservation = await _reservationRepo.GetByIdAsync(id);
+            if (reservation == null)
+            {
+                return ServiceResult<ReservationDto>.Failure("Reservation not found.", 404);
+            }
+
+            if (isAdmin || reservation.UserId == userId)
+            {
+                var reservationDto = reservation.ToReservationDto(reservation.MovieSession, reservation.Tickets.Select(t => t.Seat).ToList());
+                return ServiceResult<ReservationDto>.Success(reservationDto, 200);
+            }
+
+            return ServiceResult<ReservationDto>.Failure("Reservation not found.", 404);
+        }
+
+        public async Task<ServiceResult<List<ReservationDto>>> GetReservationsByUserIdAsync(string userId, UserReservationQueryObject query)
+        {
+            var reservations = await _reservationRepo.GetReservationsByUserIdAsync(userId, query);
+            var reservationDtos = reservations.Select(r => r.ToReservationDto(
+                r.MovieSession,
+                r.Tickets.Select(t => t.Seat).ToList())
+            ).ToList();
+
+            return ServiceResult<List<ReservationDto>>.Success(reservationDtos, 200);
         }
     }
 }

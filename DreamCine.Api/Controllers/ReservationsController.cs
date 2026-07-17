@@ -1,12 +1,8 @@
 ﻿using System.Security.Claims;
 using DreamCine.Application.DTOs.Reservation;
 using DreamCine.Application.Interfaces;
-using DreamCine.Application.Mappers;
 using DreamCine.Core.Helpers;
-using DreamCine.Core.Interfaces;
-using DreamCine.Core.Models;
 using FluentValidation;
-using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,14 +13,12 @@ namespace DreamCine.Api.Controllers
     [Authorize]
     public class ReservationsController : ControllerBase
     {
-        public IReservationRepository _reservationRepo;
         public IValidator<CreateReservationDto> _createReservationValidator;
         public IReservationService _reservationService;
 
-        public ReservationsController(IReservationRepository reservationRepo, IReservationService reservationService,
+        public ReservationsController(IReservationService reservationService,
             IValidator<CreateReservationDto> createReservationValidator)
         {
-            _reservationRepo = reservationRepo;
             _createReservationValidator = createReservationValidator;
             _reservationService = reservationService;
         }
@@ -64,26 +58,30 @@ namespace DreamCine.Api.Controllers
                 return Unauthorized("User ID could not be found in the token.");
             }
 
-            var reservations = await _reservationRepo.GetReservationsByUserIdAsync(userId, query);
-            var reservationDtos = reservations.Select(r => r.ToReservationDto(
-                r.MovieSession,
-                r.Tickets.Select(t => t.Seat).ToList())
-            );
-
-            return Ok(reservationDtos);
+            var result = await _reservationService.GetReservationsByUserIdAsync(userId, query);
+            if (!result.IsSuccess)
+            {
+                return StatusCode(result.StatusCode, result.ErrorMessage);
+            }
+            else
+            {
+                return StatusCode(result.StatusCode, result.Data);
+            }
         }
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll([FromQuery] ReservationQueryObject query)
         {
-            var reservation = await _reservationRepo.GetAllWithFilteringAsync(query);
-            var reservationDtos = reservation.Select(r => r.ToReservationDto(
-                r.MovieSession,
-                r.Tickets.Select(t => t.Seat).ToList())
-            );
-
-            return Ok(reservationDtos);
+            var result = await _reservationService.GetAllWithFilteringAsync(query);
+            if (!result.IsSuccess)
+            {
+                return StatusCode(result.StatusCode, result.ErrorMessage);
+            }
+            else
+            {
+                return StatusCode(result.StatusCode, result.Data);
+            }
         }
 
         [HttpGet("{id:int}")]
@@ -95,19 +93,17 @@ namespace DreamCine.Api.Controllers
                 return Unauthorized("User ID could not be found in the token.");
             }
 
-            var reservation = await _reservationRepo.GetByIdAsync(id);
-            if (reservation == null)
-            {
-                return NotFound();
-            }
+            var isAdmin = User.IsInRole("Admin");
 
-            if (User.IsInRole("Admin") || reservation.UserId == userId)
+            var result = await _reservationService.GetByIdAsync(id, userId, isAdmin);
+            if (!result.IsSuccess)
             {
-                var reservationDto = reservation.ToReservationDto(reservation.MovieSession, reservation.Tickets.Select(t => t.Seat).ToList());
-                return Ok(reservationDto);
+                return StatusCode(result.StatusCode, result.ErrorMessage);
             }
-
-            return NotFound();
+            else
+            {
+                return StatusCode(result.StatusCode, result.Data);
+            }
         }
 
         [HttpPatch("{id:int}/cancel")]
@@ -119,30 +115,17 @@ namespace DreamCine.Api.Controllers
                 return Unauthorized("User ID could not be found in the token.");
             }
 
-            var reservation = await _reservationRepo.GetByIdAsync(id);
-            if (reservation == null)
-            {
-                return NotFound();
-            }
+            var isAdmin = User.IsInRole("Admin");
 
-            if (!User.IsInRole("Admin") && reservation.UserId != userId)
+            var result = await _reservationService.CancelReservationAsync(id, userId, isAdmin);
+            if (!result.IsSuccess)
             {
-                return NotFound();
+                return StatusCode(result.StatusCode, result.ErrorMessage);
             }
-
-            if (reservation.Status != Core.Enums.ReservationStatus.Pending)
+            else
             {
-                return BadRequest("Only pending reservations can be cancelled.");
+                return StatusCode(result.StatusCode, result.Data);
             }
-
-            reservation.Status = Core.Enums.ReservationStatus.Cancelled;
-            foreach (var ticket in reservation.Tickets)
-            {
-                ticket.Status = Core.Enums.TicketStatus.Cancelled;
-            }
-            await _reservationRepo.UpdateAsync(id, reservation);
-
-            return Ok("Reservation cancelled successfully.");
         }
     }
 }
