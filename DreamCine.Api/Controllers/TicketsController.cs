@@ -1,7 +1,6 @@
 ﻿using System.Security.Claims;
-using DreamCine.Application.Mappers;
+using DreamCine.Application.Interfaces;
 using DreamCine.Core.Helpers;
-using DreamCine.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,11 +11,11 @@ namespace DreamCine.Api.Controllers
     [Authorize]
     public class TicketsController : ControllerBase
     {
-        private readonly ITicketRepository _ticketRepo;
+        private readonly ITicketService _ticketService;
 
-        public TicketsController(ITicketRepository ticketRepo)
+        public TicketsController(ITicketService ticketService)
         {
-            _ticketRepo = ticketRepo;
+            _ticketService = ticketService;
         }
 
         [HttpGet("my-tickets")]
@@ -28,20 +27,30 @@ namespace DreamCine.Api.Controllers
                 return Unauthorized("User ID could not be found in the token.");
             }
 
-            var tickets = await _ticketRepo.GetTicketsByUserIdAsync(userId, query);
-            var ticketDtos = tickets.Select(t => t.ToTicketDto());
-
-            return Ok(ticketDtos);
+            var result = await _ticketService.GetUserTicketsAsync(userId, query);
+            if (!result.IsSuccess)
+            {
+                return StatusCode(result.StatusCode, result.ErrorMessage);
+            }
+            else
+            {
+                return StatusCode(result.StatusCode, result.Data);
+            }
         }
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll([FromQuery] TicketQuery query)
         {
-            var tickets = await _ticketRepo.GetAllAsync(query);
-            var ticketDtos = tickets.Select(t => t.ToTicketDto());
-
-            return Ok(ticketDtos);
+            var result = await _ticketService.GetAllAsync(query);
+            if (!result.IsSuccess)
+            {
+                return StatusCode(result.StatusCode, result.ErrorMessage);
+            }
+            else
+            {
+                return StatusCode(result.StatusCode, result.Data);
+            }
         }
 
         [HttpGet("{id:int}")]
@@ -53,19 +62,17 @@ namespace DreamCine.Api.Controllers
                 return Unauthorized("User ID could not be found in the token.");
             }
 
-            var ticket = await _ticketRepo.GetByIdAsync(id);
-            if (ticket == null)
-            {
-                return NotFound();
-            }
+            var isAdmin = User.IsInRole("Admin");
 
-            if (User.IsInRole("Admin") || ticket.Reservation.UserId == userId)
+            var result = await _ticketService.GetByIdAsync(id, userId, isAdmin);
+            if (!result.IsSuccess)
             {
-                var ticketDto = ticket.ToTicketDto();
-                return Ok(ticketDto);
+                return StatusCode(result.StatusCode, result.ErrorMessage);
             }
-
-            return NotFound();
+            else
+            {
+                return StatusCode(result.StatusCode, result.Data);
+            }
         }
 
         // add cancel tickets later

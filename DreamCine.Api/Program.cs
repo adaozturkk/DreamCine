@@ -119,6 +119,7 @@ builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IReservationJobService, ReservationJobService>();
 builder.Services.AddScoped<IJobScheduler, HangfireJobScheduler>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddScoped<ITicketService, TicketService>();
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
