@@ -15,15 +15,17 @@ namespace DreamCine.Application.Services
         private readonly ITicketRepository _ticketRepo;
         private readonly ISeatRepository _seatRepo;
         private readonly IJobScheduler _jobScheduler;
+        private readonly IUnitOfWork _unitOfWork;
 
         public ReservationService(IReservationRepository reservationRepo, IMovieSessionRepository movieSessionRepo,
-            ITicketRepository ticketRepo, ISeatRepository seatRepo, IJobScheduler jobScheduler)
+            ITicketRepository ticketRepo, ISeatRepository seatRepo, IJobScheduler jobScheduler, IUnitOfWork unitOfWork)
         {
             _reservationRepo = reservationRepo;
             _movieSessionRepo = movieSessionRepo;
             _ticketRepo = ticketRepo;
             _seatRepo = seatRepo;
             _jobScheduler = jobScheduler;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<ServiceResult<string>> CancelReservationAsync(int id, string userId, bool isAdmin)
@@ -74,33 +76,46 @@ namespace DreamCine.Application.Services
                 return ServiceResult<ReservationDto>.Failure("One or more selected seats are already reserved.", 400);
             }
 
-            var reservation = new Reservation
-            {
-                UserId = userId,
-                MovieSessionId = session.Id,
-                BookingTime = DateTime.UtcNow,
-                Status = Core.Enums.ReservationStatus.Pending,
-                Tickets = new List<Ticket>()
-            };
+            await _unitOfWork.BeginTransactionAsync();
 
-            foreach (var seatId in dto.SeatIds)
+            try
             {
-                reservation.Tickets.Add(new Ticket
+                var reservation = new Reservation
                 {
-                    SeatId = seatId,
-                    PurchasePrice = session.Price,
-                    Status = Core.Enums.TicketStatus.Pending,
-                    MovieSessionId = session.Id
-                });
+                    UserId = userId,
+                    MovieSessionId = session.Id,
+                    BookingTime = DateTime.UtcNow,
+                    Status = Core.Enums.ReservationStatus.Pending,
+                    Tickets = new List<Ticket>()
+                };
+
+                foreach (var seatId in dto.SeatIds)
+                {
+                    reservation.Tickets.Add(new Ticket
+                    {
+                        SeatId = seatId,
+                        PurchasePrice = session.Price,
+                        Status = Core.Enums.TicketStatus.Pending,
+                        MovieSessionId = session.Id
+                    });
+                }
+
+                reservation.TotalPrice = reservation.Tickets.Sum(x => x.PurchasePrice);
+                await _reservationRepo.CreateAsync(reservation);
+
+                _jobScheduler.ScheduleCancelReservationJob(reservation.Id, TimeSpan.FromMinutes(10));
+
+                await _unitOfWork.CommitTransactionAsync();
+
+                var reservationDto = reservation.ToReservationDto(session, bookedSeats);
+                return ServiceResult<ReservationDto>.Success(reservationDto, 200);
             }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
 
-            reservation.TotalPrice = reservation.Tickets.Sum(x => x.PurchasePrice);
-            await _reservationRepo.CreateAsync(reservation);
-
-            _jobScheduler.ScheduleCancelReservationJob(reservation.Id, TimeSpan.FromMinutes(10));
-
-            var reservationDto = reservation.ToReservationDto(session, bookedSeats);
-            return ServiceResult<ReservationDto>.Success(reservationDto, 200);
+                return ServiceResult<ReservationDto>.Failure($"Failed to create reservation: {ex.Message}", 500);
+            }
         }
 
         public async Task<ServiceResult<List<ReservationDto>>> GetAllWithFilteringAsync(ReservationQueryObject query)
