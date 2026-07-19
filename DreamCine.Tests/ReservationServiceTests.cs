@@ -1,4 +1,4 @@
-﻿using DreamCine.Application.DTOs.Reservation;
+﻿    using DreamCine.Application.DTOs.Reservation;
 using DreamCine.Application.Interfaces;
 using DreamCine.Application.Services;
 using DreamCine.Core.Interfaces;
@@ -199,6 +199,104 @@ namespace DreamCine.Tests
             Assert.Equal(400, result.StatusCode);
             Assert.Equal("Only pending reservations can be cancelled.", result.ErrorMessage);
             _reservationMock.Verify(r => r.UpdateAsync(100, It.IsAny<Reservation>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ReservationDoesNotExist_ReturnsNotFound()
+        {
+            _reservationMock.Setup(repo => repo.GetByIdAsync(999))
+                .ReturnsAsync((Reservation?)null);
+
+            var result = await _service.GetByIdAsync(999, "any-user", false);
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal(404, result.StatusCode);
+            Assert.Equal("Reservation not found.", result.ErrorMessage);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_UserIsAdmin_ReturnsSuccess()
+        {
+            var reservation = new Reservation
+            {
+                Id = 100,
+                Status = Core.Enums.ReservationStatus.Pending,
+                UserId = "someone-else",
+                MovieSession = new MovieSession
+                {
+                    Movie = new Movie { Title = "Inception" },
+                    Screen = new Screen { ScreenNumber = 5 }
+                },
+                Tickets = new List<Ticket>
+                {
+                    new Ticket
+                    {
+                        Id = 1,
+                        Status = Core.Enums.TicketStatus.Pending,
+                        Seat = new Seat { Id = 10, SeatNumber = "A1" }
+                    }
+                }
+            };
+
+            _reservationMock.Setup(repo => repo.GetByIdAsync(100))
+                .ReturnsAsync(reservation);
+
+            var result = await _service.GetByIdAsync(100, "any-user", true);
+
+            Assert.True(result.IsSuccess);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_UserIsOwner_ReturnsSuccess()
+        {
+            var reservation = new Reservation
+            {
+                Id = 100,
+                Status = Core.Enums.ReservationStatus.Pending,
+                UserId = "test-owner-id",
+                MovieSession = new MovieSession
+                {
+                    Movie = new Movie { Title = "Inception" },
+                    Screen = new Screen { ScreenNumber = 5 }
+                },
+                Tickets = new List<Ticket>
+                {
+                    new Ticket
+                    {
+                        Id = 1,
+                        Status = Core.Enums.TicketStatus.Pending,
+                        Seat = new Seat { Id = 10, SeatNumber = "A1" }
+                    }
+                }
+            };
+
+            _reservationMock.Setup(repo => repo.GetByIdAsync(100))
+                .ReturnsAsync(reservation);
+
+            var result = await _service.GetByIdAsync(100, "test-owner-id", false);
+
+            Assert.True(result.IsSuccess);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_UserIsNotOwnerAndNotAdmin_ReturnsNotFound()
+        {
+            var reservation = new Reservation
+            {
+                Id = 100,
+                Status = Core.Enums.ReservationStatus.Pending,
+                UserId = "original-owner",
+                Tickets = [new Ticket { Id = 1, Status = Core.Enums.TicketStatus.Pending }]
+            };
+
+            _reservationMock.Setup(repo => repo.GetByIdAsync(100))
+                .ReturnsAsync(reservation);
+
+            var result = await _service.GetByIdAsync(100, "hacker-user", false);
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal(404, result.StatusCode);
+            Assert.Equal("Reservation not found.", result.ErrorMessage);
         }
     }
 }
