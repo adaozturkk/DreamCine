@@ -92,5 +92,113 @@ namespace DreamCine.Tests
             _unitOfWorkMock.Verify(u =>
                 u.BeginTransactionAsync(), Times.Never);
         }
+
+        [Fact]
+        public async Task CreateReservationAsync_SeatDoesNotExist_ReturnsBadRequest()
+        {
+            _movieSessionMock.Setup(repo => repo.GetByIdAsync(1))
+                .ReturnsAsync(new MovieSession { Id = 1 });
+
+            var seatIds = new List<int> { 10, 11 };
+            var seats = new List<Seat>
+            {
+                new Seat { Id = 10, SeatNumber = "A1" }
+            };
+            _seatMock.Setup(repo => repo.GetSeatsByIdAsync(seatIds))
+                .ReturnsAsync(seats);
+
+            var dto = new CreateReservationDto
+            {
+                MovieSessionId = 1,
+                SeatIds = [10, 11]
+            };
+
+            var result = await _service.CreateReservationAsync(dto, "test-user-id");
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal(400, result.StatusCode);
+            Assert.Equal("One or more selected seats do not exist.", result.ErrorMessage);
+            _unitOfWorkMock.Verify(u =>
+                u.BeginTransactionAsync(), Times.Never);
+        }
+
+        [Fact]
+        public async Task CreateReservationAsync_SeatAlreadyReserved_ReturnsBadRequest()
+        {
+            _movieSessionMock.Setup(repo => repo.GetByIdAsync(1))
+                .ReturnsAsync(new MovieSession { Id = 1 });
+
+            var seatIds = new List<int> { 10 };
+            var seats = new List<Seat>
+            {
+                new Seat { Id = 10, SeatNumber = "A1" }
+            };
+            _seatMock.Setup(repo => repo.GetSeatsByIdAsync(seatIds))
+                .ReturnsAsync(seats);
+
+            _ticketMock.Setup(repo => repo.GetOccupiedSeatIdsAsync(1))
+                .ReturnsAsync(new List<int> { 10 });
+
+            var dto = new CreateReservationDto
+            {
+                MovieSessionId = 1,
+                SeatIds = [10]
+            };
+
+            var result = await _service.CreateReservationAsync(dto, "test-user-id");
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal(400, result.StatusCode);
+            Assert.Equal("One or more selected seats are already reserved.", result.ErrorMessage);
+            _unitOfWorkMock.Verify(u =>
+                u.BeginTransactionAsync(), Times.Never);
+        }
+
+        [Fact]
+        public async Task CancelReservationAsync_ValidPendingReservation_ReturnsSuccess()
+        {
+            var reservation = new Reservation
+            {
+                Id = 100,
+                Status = Core.Enums.ReservationStatus.Pending,
+                UserId = "test-user-id",
+                Tickets = [new Ticket { Id = 1, Status = Core.Enums.TicketStatus.Pending },
+                        new Ticket { Id = 2, Status = Core.Enums.TicketStatus.Pending }]
+            };
+
+            _reservationMock.Setup(repo => repo.GetByIdAsync(100))
+                .ReturnsAsync(reservation);
+
+            var result = await _service.CancelReservationAsync(100, "test-user-id", false);
+
+            Assert.True(result.IsSuccess);
+            Assert.Equal("Reservation cancelled successfully.", result.Data);
+            Assert.Equal(Core.Enums.ReservationStatus.Cancelled, reservation.Status);
+            Assert.All(reservation.Tickets, t =>
+                Assert.Equal(Core.Enums.TicketStatus.Cancelled, t.Status));
+            _reservationMock.Verify(r => r.UpdateAsync(100, It.IsAny<Reservation>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CancelReservationAsync_ReservationNotPending_ReturnsBadRequest()
+        {
+            var reservation = new Reservation
+            {
+                Id = 100,
+                Status = Core.Enums.ReservationStatus.Confirmed,
+                UserId = "test-user-id",
+                Tickets = [new Ticket { Id = 1, Status = Core.Enums.TicketStatus.Paid }]
+            };
+
+            _reservationMock.Setup(repo => repo.GetByIdAsync(100))
+                .ReturnsAsync(reservation);
+
+            var result = await _service.CancelReservationAsync(100, "test-user-id", false);
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal(400, result.StatusCode);
+            Assert.Equal("Only pending reservations can be cancelled.", result.ErrorMessage);
+            _reservationMock.Verify(r => r.UpdateAsync(100, It.IsAny<Reservation>()), Times.Never);
+        }
     }
 }
