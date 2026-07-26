@@ -121,6 +121,7 @@ builder.Services.AddScoped<IJobScheduler, HangfireJobScheduler>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
