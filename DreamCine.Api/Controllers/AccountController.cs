@@ -15,9 +15,6 @@ namespace DreamCine.Api.Controllers
     [Authorize]
     public class AccountController : ControllerBase
     {
-        private readonly UserManager<AppUser> _userManager;
-        private readonly ITokenService _tokenService;
-        private readonly IEmailService _emailService;
         private readonly IValidator<RegisterDto> _registerValidator;
         private readonly IValidator<LoginDto> _loginValidator;
         private readonly IValidator<TokenDto> _tokenValidator;
@@ -25,22 +22,21 @@ namespace DreamCine.Api.Controllers
         private readonly IValidator<ForgotPasswordDto> _forgotPasswordValidator;
         private readonly IValidator<ResetPasswordDto> _resetPasswordValidator;
         private readonly IValidator<ChangePasswordDto> _changePasswordValidator;
+        private readonly IAccountService _accountService;
 
-        public AccountController(UserManager<AppUser> userManager, ITokenService tokenService,  IValidator<RegisterDto> registerValidator,
+        public AccountController(IAccountService accountService,  IValidator<RegisterDto> registerValidator,
              IValidator<LoginDto> loginValidator, IValidator<TokenDto> tokenValidator, IValidator<AssignRoleDto> assignRoleValidator, 
-             IEmailService emailService, IValidator<ForgotPasswordDto> forgotPasswordValidator, IValidator<ResetPasswordDto> resetPasswordValidator,
+             IValidator<ForgotPasswordDto> forgotPasswordValidator, IValidator<ResetPasswordDto> resetPasswordValidator,
              IValidator<ChangePasswordDto> changePasswordValidator)
         {
-            _userManager = userManager;
-            _tokenService = tokenService;
             _registerValidator = registerValidator;
             _loginValidator = loginValidator;
             _tokenValidator = tokenValidator;
             _assignRoleValidator = assignRoleValidator;
-            _emailService = emailService;
             _forgotPasswordValidator = forgotPasswordValidator;
             _resetPasswordValidator = resetPasswordValidator;
             _changePasswordValidator = changePasswordValidator;
+            _accountService = accountService;
         }
 
         [HttpPost("register")]
@@ -48,35 +44,18 @@ namespace DreamCine.Api.Controllers
         public async Task<IActionResult> Register(RegisterDto registerDto)
         {
             var validationResult = await _registerValidator.ValidateAsync(registerDto);
-
             if (!validationResult.IsValid)
             {
                 return BadRequest(validationResult.Errors);
             }
 
-            var user = new AppUser
+            var result = await _accountService.RegisterAsync(registerDto);
+            if (!result.IsSuccess)
             {
-                UserName = registerDto.Username,
-                Email = registerDto.Email
-            };
-
-            var result = await _userManager.CreateAsync(user, registerDto.Password);
-
-            if (result.Succeeded)
-            {
-                var roleResult = await _userManager.AddToRoleAsync(user, "User");
-
-                if (roleResult.Succeeded)
-                {
-                    return Ok("User created successfully and assigned to 'User' role.");
-                }
-                else
-                {
-                    return StatusCode(500, roleResult.Errors);
-                }
+                return StatusCode(result.StatusCode, result.ErrorMessage);
             }
 
-            return BadRequest(result.Errors);
+            return Ok(result.Data);
         }
 
         [HttpPost("login")]
@@ -84,31 +63,18 @@ namespace DreamCine.Api.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             var validationResult = await _loginValidator.ValidateAsync(loginDto);
-
             if (!validationResult.IsValid)
             {
                 return BadRequest(validationResult.Errors);
             }
 
-            var user = await _userManager.FindByEmailAsync(loginDto.Email);
-
-            if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
+            var result = await _accountService.LoginAsync(loginDto);
+            if (!result.IsSuccess)
             {
-                return Unauthorized("Invalid email or password.");
+                return StatusCode(result.StatusCode, result.ErrorMessage);
             }
 
-            var accessToken = await _tokenService.CreateToken(user);
-            var refreshToken = _tokenService.GenerateRefreshToken();
-
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
-            await _userManager.UpdateAsync(user);
-
-            return Ok(new
-            {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken
-            });
+            return Ok(result.Data);
         }
 
         [HttpPost("refresh-token")]
@@ -121,29 +87,13 @@ namespace DreamCine.Api.Controllers
                 return BadRequest(validationResult.Errors);
             }
 
-            var user = await _userManager.FindByEmailAsync(tokenDto.Email);
-            if (user == null)
+            var result = await _accountService.RefreshTokenAsync(tokenDto);
+            if (!result.IsSuccess)
             {
-                return BadRequest("User not found.");
+                return StatusCode(result.StatusCode, result.ErrorMessage);
             }
 
-            if (user.RefreshToken != tokenDto.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
-            {
-                return BadRequest("Invalid or expired refresh token. Please log in again.");
-            }
-
-            var newAccessToken = await _tokenService.CreateToken(user);
-            var newRefreshToken = _tokenService.GenerateRefreshToken();
-
-            user.RefreshToken = newRefreshToken;
-            user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
-            await _userManager.UpdateAsync(user);
-
-            return Ok(new
-            {
-                AccessToken = newAccessToken,
-                RefreshToken = newRefreshToken
-            });
+            return Ok(result.Data);
         }
 
         [HttpPost("assign-role")]
@@ -156,22 +106,13 @@ namespace DreamCine.Api.Controllers
                 return BadRequest(validationResult.Errors);
             }
 
-            var user = await _userManager.FindByEmailAsync(roleDto.Email);
-            if (user == null)
+            var result = await _accountService.AssignRoleAsync(roleDto);
+            if (!result.IsSuccess)
             {
-                return NotFound("Email not found.");
+                return StatusCode(result.StatusCode, result.ErrorMessage);
             }
 
-            var currentRoles = await _userManager.GetRolesAsync(user);
-            await _userManager.RemoveFromRolesAsync(user, currentRoles);
-
-            var assignedRole = await _userManager.AddToRoleAsync(user, roleDto.Role.ToString());
-            if (!assignedRole.Succeeded)
-            {
-                return BadRequest(assignedRole.Errors);
-            }
-
-            return Ok("Role assigned successfully.");
+            return Ok(result.Data);
         }
 
         [HttpPost("forgot-password")]
@@ -184,19 +125,13 @@ namespace DreamCine.Api.Controllers
                 return BadRequest(validationResult.Errors);
             }
 
-            var user = await _userManager.FindByEmailAsync(passwordDto.Email);
-            if (user == null)
+            var result = await _accountService.ForgotPasswordAsync(passwordDto);
+            if (!result.IsSuccess)
             {
-                return Ok("If an account exists with this email, a password reset link has been sent.");
+                return StatusCode(result.StatusCode, result.ErrorMessage);
             }
 
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var resetLink = $"http://localhost:3000/reset-password?email={user.Email}&token={token}";
-            string body = $"<h2>Password Reset Request</h2><p>To reset your password, please click the link below:</p><a href='{resetLink}'>Click here to reset your password</a>";
-
-            await _emailService.SendEmailAsync(user.Email, "Password Reset Request", body);
-
-            return Ok("If an account exists with this email, a password reset link has been sent.");
+            return Ok(result.Data);
         }
 
         [HttpPost("reset-password")]
@@ -209,19 +144,13 @@ namespace DreamCine.Api.Controllers
                 return BadRequest(validationResult.Errors);
             }
 
-            var user = await _userManager.FindByEmailAsync(passwordDto.Email);
-            if (user == null)
+            var result = await _accountService.ResetPasswordAsync(passwordDto);
+            if (!result.IsSuccess)
             {
-                return BadRequest("Invalid request.");
+                return StatusCode(result.StatusCode, result.ErrorMessage);
             }
 
-            var result = await _userManager.ResetPasswordAsync(user, passwordDto.Token, passwordDto.NewPassword);
-            if (!result.Succeeded)
-            {
-                return BadRequest(result.Errors);
-            }
-
-            return Ok("Password has been reset successfully.");
+            return Ok(result.Data);
         }
 
         [HttpPost("change-password")]
@@ -234,19 +163,14 @@ namespace DreamCine.Api.Controllers
             }
 
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
-            var user = await _userManager.FindByEmailAsync(userEmail);
-            if (user == null)
+
+            var result = await _accountService.ChangePasswordAsync(passwordDto, userEmail);
+            if (!result.IsSuccess)
             {
-                return BadRequest("Invalid request.");
+                return StatusCode(result.StatusCode, result.ErrorMessage);
             }
 
-            var result = await _userManager.ChangePasswordAsync(user, passwordDto.CurrentPassword, passwordDto.NewPassword);
-            if (!result.Succeeded)
-            {
-                return BadRequest(result.Errors);
-            }
-
-            return Ok("Password changed successfully.");
+            return Ok(result.Data);
         }
     }
 }

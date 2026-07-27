@@ -70,7 +70,7 @@ namespace DreamCine.Application.Services
             var resetLink = $"http://localhost:3000/reset-password?email={user.Email}&token={token}";
             string body = $"<h2>Password Reset Request</h2><p>To reset your password, please click the link below:</p><a href='{resetLink}'>Click here to reset your password</a>";
 
-            await _emailService.SendEmailAsync(user.Email, "Password Reset Request", body);
+            await _emailService.SendEmailAsync(user.Email!, "Password Reset Request", body);
 
             return ServiceResult<string>.Success("If an account exists with this email, a password reset link has been sent.", 200);
         }
