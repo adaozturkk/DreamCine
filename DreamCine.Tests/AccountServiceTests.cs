@@ -108,5 +108,97 @@ namespace DreamCine.Tests
             Assert.Equal(500, result.StatusCode);
             Assert.Equal("Role assignment failed.", result.ErrorMessage);
         }
+
+        [Fact]
+        public async Task LoginAsync_ValidCredentials_ReturnsTokens()
+        {
+            var user = new AppUser
+            {
+                Email = "test@gmail.com",
+                UserName = "testuser"
+            };
+
+            _userManagerMock.Setup(um =>
+                um.FindByEmailAsync("test@gmail.com"))
+                .ReturnsAsync(user);
+
+            _userManagerMock.Setup(um =>
+                um.CheckPasswordAsync(user, "testPassword123!"))
+                .ReturnsAsync(true);
+
+            _userManagerMock.Setup(um =>
+                um.UpdateAsync(user))
+                .ReturnsAsync(IdentityResult.Success);
+
+            _tokenServiceMock.Setup(ts =>
+                ts.CreateToken(user))
+                .ReturnsAsync("fake-access-token");
+
+            _tokenServiceMock.Setup(ts =>
+                ts.GenerateRefreshToken())
+                .Returns("fake-refresh-token");
+
+            var dto = new LoginDto
+            {
+                Email = "test@gmail.com",
+                Password = "testPassword123!"
+            };
+
+            var result = await _service.LoginAsync(dto);
+
+            Assert.True(result.IsSuccess);
+            Assert.Equal("fake-access-token", result.Data!.AccessToken);
+            Assert.Equal("fake-refresh-token", result.Data!.RefreshToken);
+        }
+
+        [Fact]
+        public async Task LoginAsync_InvalidCredentials_ReturnsUnauthorized()
+        {
+            _userManagerMock.Setup(um =>
+                um.FindByEmailAsync("test@gmail.com"))
+                .ReturnsAsync((AppUser?)null);
+
+            var dto = new LoginDto
+            {
+                Email = "test@gmail.com",
+                Password = "testPassword123!"
+            };
+
+            var result = await _service.LoginAsync(dto);
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal(401, result.StatusCode);
+            Assert.Equal("Invalid email or password.", result.ErrorMessage);
+        }
+
+        [Fact]
+        public async Task LoginAsync_InvalidPassword_ReturnsUnauthorized()
+        {
+            var user = new AppUser
+            {
+                Email = "test@gmail.com",
+                UserName = "testuser"
+            };
+
+            _userManagerMock.Setup(um =>
+                um.FindByEmailAsync("test@gmail.com"))
+                .ReturnsAsync(user);
+
+            _userManagerMock.Setup(um =>
+                um.CheckPasswordAsync(user, "wrong-password"))
+                .ReturnsAsync(false);
+
+            var dto = new LoginDto
+            {
+                Email = "test@gmail.com",
+                Password = "wrong-password"
+            };
+
+            var result = await _service.LoginAsync(dto);
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal(401, result.StatusCode);
+            Assert.Equal("Invalid email or password.", result.ErrorMessage);
+        }
     }
 }
